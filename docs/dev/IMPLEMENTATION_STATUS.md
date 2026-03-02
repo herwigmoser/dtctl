@@ -44,32 +44,57 @@ This document tracks the current implementation status of dtctl. For future plan
 
 ### Resources
 
-| Resource | get | describe | create | delete | edit | apply | diff | exec | logs | share | history | restore | --mine | --watch |
-|----------|-----|----------|--------|--------|------|-------|------|------|-------|---------|---------|--------|---------|
-| **workflow** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - | - | ✅ | ✅ | ✅ | ✅ |
-| **execution** | ✅ | ✅ | - | - | - | - | - | - | ✅ | - | - | - | - | ✅ |
-| **dashboard** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - | - | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **notebook** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - | - | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **slo** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | ✅ | - | - | - | - | - | ✅ |
-| **slo-template** | ✅ | ✅ | - | - | - | - | - | - | - | - | - | - | - | - |
-| **notification** | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - | - | - | ✅ |
-| **bucket** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - | ✅ |
-| **settings** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - | - | - | - | - | - | - |
-| **app** | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - | - | - |
-| **function** | ✅ | ✅ | - | - | - | - | - | ✅ | - | - | - | - | - |
-| **edgeconnect** | ✅ | ✅ | ✅ | ✅ | - | - | - | - | - | - | - | - | - |
-| **user** | ✅ | ✅ | - | - | - | - | - | - | - | - | - | - | - |
-| **group** | ✅ | ✅ | - | - | - | - | - | - | - | - | - | - | - |
-| **analyzer** | ✅ | ✅ | - | - | - | - | - | ✅ | - | - | - | - | - |
-| **copilot** | ✅ | - | - | - | - | - | - | ✅ | - | - | - | - | - |
-| **lookup** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - |
-| **intent** | ✅ | ✅ | - | - | - | - | - | - | - | - | - | - | - |
-| **azure_connection** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - | - |
-| **azure_monitoring_config** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - | - |
-| **aws_connection** | - | - | - | - | - | - | - | - | - | - | - | - | - |
-| **aws_monitoring_config** | - | - | - | - | - | - | - | - | - | - | - | - | - |
-| **gcp_connection (Preview)** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - |
-| **gcp_monitoring_config (Preview)** | ✅ | ✅ | ✅ | ✅ | - | ✅ | - | - | - | - | - | - | - |
+#### Core Resources
+
+| Resource | get | describe | create | delete | edit | apply |
+|----------|-----|----------|--------|--------|------|-------|
+| workflow | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| execution | ✅ | ✅ | - | - | - | - |
+| dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| notebook | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| slo | ✅ | ✅ | ✅ | ✅ | - | ✅ |
+| slo-template | ✅ | ✅ | - | - | - | - |
+| notification | ✅ | ✅ | - | ✅ | - | - |
+| bucket | ✅ | ✅ | ✅ | ✅ | - | ✅ |
+| settings | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| app | ✅ | ✅ | - | ✅ | - | - |
+| function | ✅ | ✅ | - | - | - | - |
+| edgeconnect | ✅ | ✅ | ✅ | ✅ | - | - |
+| user | ✅ | ✅ | - | - | - | - |
+| group | ✅ | ✅ | - | - | - | - |
+| analyzer | ✅ | ✅ | - | - | - | - |
+| copilot | ✅ | - | - | - | - | - |
+| lookup | ✅ | ✅ | ✅ | ✅ | - | ✅ |
+| intent | ✅ | ✅ | - | - | - | - |
+
+#### Cloud Connections
+
+| Resource | get | describe | create | delete | apply |
+|----------|-----|----------|--------|--------|-------|
+| azure connection | ✅ | ✅ | ✅ | ✅ | ✅ |
+| azure monitoring | ✅ | ✅ | ✅ | ✅ | ✅ |
+| aws connection | - | - | - | - | - |
+| aws monitoring | - | - | - | - | - |
+| gcp connection (Preview) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| gcp monitoring (Preview) | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+#### Advanced Operations
+
+| Resource | diff | exec | logs | share | history | restore | --mine | --watch |
+|----------|------|------|------|-------|---------|---------|--------|---------|
+| workflow | ✅ | ✅ | - | - | ✅ | ✅ | ✅ | ✅ |
+| execution | - | - | ✅ | - | - | - | - | ✅ |
+| dashboard | ✅ | - | - | ✅ | ✅ | ✅ | ✅ | ✅ |
+| notebook | ✅ | - | - | ✅ | ✅ | ✅ | ✅ | ✅ |
+| slo | - | ✅ | - | - | - | - | - | ✅ |
+| slo-template | - | - | - | - | - | - | - | - |
+| notification | - | - | - | - | - | - | - | ✅ |
+| bucket | - | - | - | - | - | - | - | ✅ |
+| settings | - | - | - | - | - | - | - | - |
+| app | - | - | - | - | - | - | - | - |
+| function | - | ✅ | - | - | - | - | - | - |
+| analyzer | - | ✅ | - | - | - | - | - | - |
+| copilot | - | ✅ | - | - | - | - | - | - |
 
 ### Watch Mode Features
 - [x] Watch all `get` commands: `dtctl get workflows --watch`
