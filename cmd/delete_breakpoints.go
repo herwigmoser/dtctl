@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dynatrace-oss/dtctl/pkg/prompt"
 	"github.com/dynatrace-oss/dtctl/pkg/resources/livedebugger"
@@ -204,27 +205,38 @@ func runDeleteBreakpointRows(handler *livedebugger.Handler, workspaceID string, 
 		return nil
 	}
 
+	deletedRows := make([]breakpointRow, 0, len(rows))
+	failures := make([]string, 0)
 	for _, row := range rows {
 		deleteResp, err := handler.DeleteBreakpoint(workspaceID, row.ID)
 		if err != nil {
 			if verbose {
 				_ = printGraphQLResponse("deleteRuleV2", deleteResp)
 			}
-			return fmt.Errorf("failed to delete breakpoint %s: %w", row.ID, err)
+			failures = append(failures, fmt.Sprintf("%s (%s): %v", row.ID, formatBreakpointLocation(row), err))
+			continue
 		}
 		if verbose {
 			if err := printGraphQLResponse("deleteRuleV2", deleteResp); err != nil {
 				return err
 			}
 		}
+		deletedRows = append(deletedRows, row)
 	}
 
-	if len(rows) == 1 {
-		fmt.Printf("Deleted breakpoint %s (%s)\n", rows[0].ID, formatBreakpointLocation(rows[0]))
-		return nil
+	if len(deletedRows) == 1 {
+		fmt.Printf("Deleted breakpoint %s (%s)\n", deletedRows[0].ID, formatBreakpointLocation(deletedRows[0]))
+	} else if len(deletedRows) > 1 {
+		fmt.Printf("Deleted %d breakpoint(s) at %s\n", len(deletedRows), formatBreakpointLocation(deletedRows[0]))
 	}
 
-	fmt.Printf("Deleted %d breakpoint(s) at %s\n", len(rows), formatBreakpointLocation(rows[0]))
+	if len(failures) > 0 {
+		if len(deletedRows) > 0 {
+			fmt.Printf("Failed to delete %d breakpoint(s) after deleting %d successfully\n", len(failures), len(deletedRows))
+		}
+		return fmt.Errorf("failed to delete breakpoint(s): %s", strings.Join(failures, "; "))
+	}
+
 	return nil
 }
 
