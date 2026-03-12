@@ -192,44 +192,6 @@ func TestParseBreakpoint(t *testing.T) {
 	}
 }
 
-func TestUseBreakpointTableView(t *testing.T) {
-	originalFormat := outputFormat
-	originalAgentMode := agentMode
-	defer func() { outputFormat = originalFormat }()
-	defer func() { agentMode = originalAgentMode }()
-
-	tests := []struct {
-		name   string
-		format string
-		want   bool
-	}{
-		{name: "default", format: "", want: true},
-		{name: "table", format: "table", want: true},
-		{name: "wide", format: "wide", want: true},
-		{name: "csv", format: "csv", want: true},
-		{name: "json", format: "json", want: false},
-		{name: "yaml", format: "yaml", want: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			agentMode = false
-			outputFormat = tt.format
-			if got := useBreakpointTableView(); got != tt.want {
-				t.Fatalf("useBreakpointTableView() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-
-	t.Run("agent mode forces non-table view", func(t *testing.T) {
-		agentMode = true
-		outputFormat = "table"
-		if got := useBreakpointTableView(); got {
-			t.Fatalf("useBreakpointTableView() = %v, want false when agent mode enabled", got)
-		}
-	})
-}
-
 func TestBuildGraphQLResponse(t *testing.T) {
 	payload := map[string]interface{}{"data": "value"}
 	wrapper := buildGraphQLResponse("getWorkspaceRules", payload)
@@ -273,25 +235,6 @@ func TestPrintGraphQLResponse(t *testing.T) {
 func TestPrintGraphQLResponse_NilPayload(t *testing.T) {
 	if err := printGraphQLResponse("noop", nil); err != nil {
 		t.Fatalf("expected nil payload to return nil error, got: %v", err)
-	}
-}
-
-func TestPrintBreakpointsTable(t *testing.T) {
-	originalOut := rootCmd.OutOrStdout()
-	defer rootCmd.SetOut(originalOut)
-
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-
-	rows := []breakpointRow{{ID: "bp-1", Filename: "A.java", Line: 10, Active: true}}
-	printBreakpointsTable(rows)
-
-	output := out.String()
-	if !strings.Contains(output, "id") || !strings.Contains(output, "filename") || !strings.Contains(output, "line number") || !strings.Contains(output, "active") {
-		t.Fatalf("missing table header: %q", output)
-	}
-	if !strings.Contains(output, "bp-1") || !strings.Contains(output, "A.java") {
-		t.Fatalf("missing row content: %q", output)
 	}
 }
 
@@ -444,7 +387,23 @@ func TestRunGetBreakpoints_StructuredView(t *testing.T) {
 		return map[string]interface{}{"data": map[string]interface{}{}}, "ws-1", nil
 	}
 	deps.getWorkspaceRules = func(handler *livedebugger.Handler, workspaceID string) (map[string]interface{}, error) {
-		return map[string]interface{}{"data": map[string]interface{}{"org": map[string]interface{}{"workspace": map[string]interface{}{"rules": []interface{}{}}}}}, nil
+		return map[string]interface{}{
+			"data": map[string]interface{}{
+				"org": map[string]interface{}{
+					"workspace": map[string]interface{}{
+						"rules": []interface{}{
+							map[string]interface{}{
+								"id":          "bp-1",
+								"is_disabled": false,
+								"aug_json": map[string]interface{}{
+									"location": map[string]interface{}{"filename": "OrderController.java", "lineno": float64(306)},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, nil
 	}
 
 	output := captureStdout(t, func() {
@@ -453,8 +412,68 @@ func TestRunGetBreakpoints_StructuredView(t *testing.T) {
 		}
 	})
 
-	if !strings.Contains(output, "getWorkspaceRules") || !strings.Contains(output, "response") {
+	if !strings.Contains(output, "\"id\": \"bp-1\"") || !strings.Contains(output, "\"filename\": \"OrderController.java\"") {
 		t.Fatalf("unexpected structured output: %q", output)
+	}
+}
+
+func TestRunGetBreakpoints_AgentEnvelope(t *testing.T) {
+	originalOutputFormat := outputFormat
+	originalAgentMode := agentMode
+	originalDebugMode := debugMode
+	originalVerbosity := verbosity
+	defer func() {
+		outputFormat = originalOutputFormat
+		agentMode = originalAgentMode
+		debugMode = originalDebugMode
+		verbosity = originalVerbosity
+	}()
+
+	outputFormat = ""
+	agentMode = true
+	debugMode = false
+	verbosity = 0
+
+	deps := liveDebuggerDeps{}
+	deps.loadConfig = func() (*config.Config, error) {
+		cfg := config.NewConfig()
+		cfg.SetContext("test", "https://example.invalid", "token")
+		cfg.CurrentContext = "test"
+		return cfg, nil
+	}
+	deps.newClient = func(cfg *config.Config) (*client.Client, error) { return nil, nil }
+	deps.newHandler = func(c *client.Client, environment string) (*livedebugger.Handler, error) { return nil, nil }
+	deps.getOrCreateWorkspace = func(handler *livedebugger.Handler, projectPath string) (map[string]interface{}, string, error) {
+		return map[string]interface{}{"data": map[string]interface{}{}}, "ws-1", nil
+	}
+	deps.getWorkspaceRules = func(handler *livedebugger.Handler, workspaceID string) (map[string]interface{}, error) {
+		return map[string]interface{}{
+			"data": map[string]interface{}{
+				"org": map[string]interface{}{
+					"workspace": map[string]interface{}{
+						"rules": []interface{}{
+							map[string]interface{}{
+								"id":          "bp-1",
+								"is_disabled": false,
+								"aug_json": map[string]interface{}{
+									"location": map[string]interface{}{"filename": "OrderController.java", "lineno": float64(306)},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, nil
+	}
+
+	output := captureStdout(t, func() {
+		if err := runGetBreakpointsWithDeps(nil, nil, deps); err != nil {
+			t.Fatalf("runGetBreakpoints returned error: %v", err)
+		}
+	})
+
+	if !strings.Contains(output, "\"ok\": true") || !strings.Contains(output, "\"resource\": \"breakpoint\"") {
+		t.Fatalf("unexpected agent output: %q", output)
 	}
 }
 

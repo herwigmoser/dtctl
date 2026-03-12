@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -47,10 +46,10 @@ func defaultLiveDebuggerDeps() liveDebuggerDeps {
 }
 
 type breakpointRow struct {
-	ID       string
-	Filename string
-	Line     int
-	Active   bool
+	ID       string `table:"ID" json:"id" yaml:"id"`
+	Filename string `table:"FILENAME" json:"filename" yaml:"filename"`
+	Line     int    `table:"LINE NUMBER" json:"lineNumber" yaml:"lineNumber"`
+	Active   bool   `table:"ACTIVE" json:"active" yaml:"active"`
 }
 
 var debugCmd = &cobra.Command{
@@ -188,26 +187,14 @@ func runGetBreakpointsWithDeps(cmd *cobra.Command, args []string, deps liveDebug
 		return printGraphQLResponse("getWorkspaceRules", workspaceRulesResp)
 	}
 
-	if !useBreakpointTableView() {
-		printer := NewPrinter()
-		_ = enrichAgent(printer, "get", "breakpoint")
-		return printer.Print(buildGraphQLResponse("getWorkspaceRules", workspaceRulesResp))
-	}
-
 	rows, err := extractBreakpointRows(workspaceRulesResp)
 	if err != nil {
 		return err
 	}
 
-	printBreakpointsTable(rows)
-	return nil
-}
-
-func useBreakpointTableView() bool {
-	if agentMode {
-		return false
-	}
-	return outputFormat == "" || outputFormat == "table" || outputFormat == "wide" || outputFormat == "csv"
+	printer := NewPrinter()
+	_ = enrichAgent(printer, "get", "breakpoint")
+	return printer.PrintList(rows)
 }
 
 func isDebugVerbose() bool {
@@ -274,15 +261,6 @@ func breakpointRowFromRule(rule livedebugger.BreakpointRule) (breakpointRow, boo
 
 	isDisabled := rule.IsDisabled
 	return breakpointRow{ID: id, Filename: filename, Line: line, Active: !isDisabled}, true
-}
-
-func printBreakpointsTable(rows []breakpointRow) {
-	tw := tabwriter.NewWriter(rootCmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(tw, "id\tfilename\tline number\tactive")
-	for _, row := range rows {
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%d\t%t\n", row.ID, row.Filename, row.Line, row.Active)
-	}
-	_ = tw.Flush()
 }
 
 func currentProjectPath() string {
