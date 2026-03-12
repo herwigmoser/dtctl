@@ -2894,6 +2894,8 @@ dtctl delete gcp connection my-gcp-connection
 
 For complete guidance, see [LIVE_DEBUGGER.md](LIVE_DEBUGGER.md).
 
+> **Authentication note:** Live Debugger breakpoint operations currently require OAuth authentication. The `dev-obs:breakpoints:set` scope is supported with `dtctl auth login`, but is not currently supported with API token authentication (for example via `dtctl config set-credentials`).
+
 ### Configure target filters
 
 ```bash
