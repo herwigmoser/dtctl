@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-03-18
+
 ### Added
-- **Extensions 2.0 support** — full read and configuration management for Extensions 2.0 via `dtctl get/describe extensions`, `dtctl get/describe extension-configs`, and `dtctl apply extension-config`; includes automatic API page-size capping, YAML output support for monitoring configuration values, and template variable support
-- **Visual output improvements** — bold table headers, status-aware coloring (green/red/yellow for known states), dimmed UUIDs, colored error prefix, dimmed empty-state message, `PrintSuccess`/`PrintWarning` helpers, and a new `-o describe` vertical key-value format (similar to `kubectl describe`); all styling respects `NO_COLOR`, `FORCE_COLOR`, `--plain`, and TTY detection
+- **Visual output improvements** — bold table headers, status-aware coloring (green/red/yellow for known states), dimmed UUIDs, colored error prefix, dimmed empty-state message, and a new `-o describe` vertical key-value format (similar to `kubectl describe`); all styling respects `NO_COLOR`, `FORCE_COLOR`, `--plain`, and TTY detection
+
+### Changed
+- **Consistent stderr messaging** — all success, warning, and info messages now use dedicated `PrintSuccess`/`PrintInfo`/`PrintWarning` helpers that write to stderr, ensuring stdout stays clean for piping and scripting; covers auth, ctx, config, alias, lookups, azure, and all create/edit/delete flows
+
+### Fixed
+- **Describe label formatting** — underscores in struct tags now render as spaces (e.g., `Display Name` instead of `Display_name`), and known acronyms (ID, UUID, SLO, URL, API, HTTP, etc.) are preserved in their uppercase form
 
 ## [0.15.0] - 2026-03-11
 
