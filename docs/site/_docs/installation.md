@@ -3,9 +3,7 @@ layout: docs
 title: Installation
 ---
 
-## Homebrew (Recommended -- macOS and Linux)
-
-The easiest way to install dtctl:
+## Homebrew (macOS and Linux)
 
 ```bash
 brew install dynatrace-oss/tap/dtctl
@@ -13,7 +11,31 @@ brew install dynatrace-oss/tap/dtctl
 
 This installs the binary and sets up shell completions automatically.
 
-## Binary Download
+## Shell Script (macOS and Linux)
+
+If you don't use Homebrew:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | sh
+```
+
+This downloads the latest release, extracts it to `~/.local/bin` (Linux) or `/usr/local/bin` (macOS), and verifies the installation. Override the install directory with `DTCTL_INSTALL_DIR`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | DTCTL_INSTALL_DIR=~/bin sh
+```
+
+## Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.ps1 | iex
+```
+
+This downloads the latest release, extracts it to `%LOCALAPPDATA%\dtctl`, and adds it to your PATH. Restart your terminal afterwards.
+
+**Manual install:** Download the zip for your architecture from the [releases page](https://github.com/dynatrace-oss/dtctl/releases/latest), extract it, and add the directory to your PATH. See the [Windows guide](https://github.com/dynatrace-oss/dtctl/blob/main/docs/WINDOWS.md) for detailed steps, PowerShell tips, and troubleshooting.
+
+## Binary Download (Manual)
 
 Download a pre-built binary from the [GitHub releases page](https://github.com/dynatrace-oss/dtctl/releases/latest).
 
@@ -33,13 +55,6 @@ sudo xattr -r -d com.apple.quarantine dtctl
 sudo mv dtctl /usr/local/bin/
 
 # Verify
-dtctl version
-```
-
-**Windows:**
-
-```powershell
-# Extract the zip file, then add the directory to your PATH
 dtctl version
 ```
 
@@ -116,11 +131,17 @@ dtctl completion powershell | Out-String | Invoke-Expression
 # Homebrew
 brew update && brew upgrade dtctl
 
-# Binary download
-# Re-download the latest release from GitHub
+# Shell script (re-run)
+curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | sh
 
 # From source
 git pull && make build
+```
+
+**Windows:**
+
+```powershell
+irm https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.ps1 | iex
 ```
 
 ## Uninstalling
@@ -175,6 +196,16 @@ make clean && make build
 ```
 
 For Apple Silicon Macs, target `darwin/arm64`. For Intel Macs, target `darwin/amd64`.
+
+### Windows: "dtctl is not recognized"
+
+The binary is not in your PATH. Restart your terminal after installation, or check your PATH:
+
+```powershell
+$env:Path -split ';' | Select-String dtctl
+```
+
+See the [Windows guide](https://github.com/dynatrace-oss/dtctl/blob/main/docs/WINDOWS.md) for more Windows-specific troubleshooting.
 
 ---
 

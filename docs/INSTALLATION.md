@@ -23,6 +23,34 @@ brew uninstall dtctl
 brew untap dynatrace-oss/tap  # optional
 ```
 
+## Shell Script (macOS and Linux)
+
+If you don't use Homebrew, install with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | sh
+```
+
+This downloads the latest release, extracts it to `~/.local/bin` (Linux) or `/usr/local/bin` (macOS), and verifies the installation.
+
+Override the install directory with `DTCTL_INSTALL_DIR`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.sh | DTCTL_INSTALL_DIR=~/bin sh
+```
+
+To update, re-run the same command.
+
+## Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/dynatrace-oss/dtctl/main/install.ps1 | iex
+```
+
+This downloads the latest release, extracts it to `%LOCALAPPDATA%\dtctl`, and adds it to your PATH. Restart your terminal afterwards.
+
+For detailed steps, manual install, PowerShell tips, quoting, and troubleshooting, see the dedicated [Windows installation guide](WINDOWS.md).
+
 ## Binary Download
 
 **For most users**, download the pre-built binary for your platform:
@@ -44,15 +72,6 @@ brew untap dynatrace-oss/tap  # optional
    
    # Move to a directory in your PATH
    sudo mv dtctl /usr/local/bin/
-   
-   # Verify installation
-   dtctl version
-   ```
-
-   **Windows:**
-   ```powershell
-   # Extract the zip file to a directory
-   # Add that directory to your PATH, or move dtctl.exe to an existing PATH directory
    
    # Verify installation
    dtctl version
