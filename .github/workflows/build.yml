@@ -58,7 +58,7 @@ jobs:
           fi
           
           go build \
-            -ldflags "-s -w -X github.com/dynatrace-oss/dtctl/cmd.version=${{ steps.version.outputs.version }} -X github.com/dynatrace-oss/dtctl/cmd.commit=${{ steps.version.outputs.commit }} -X github.com/dynatrace-oss/dtctl/cmd.date=${{ steps.version.outputs.date }}" \
+            -ldflags "-s -w -X github.com/dynatrace-oss/dtctl/pkg/version.Version=${{ steps.version.outputs.version }} -X github.com/dynatrace-oss/dtctl/pkg/version.Commit=${{ steps.version.outputs.commit }} -X github.com/dynatrace-oss/dtctl/pkg/version.Date=${{ steps.version.outputs.date }}" \
             -o "bin/${BINARY_NAME}" \
             .
 

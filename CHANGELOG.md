@@ -7,8 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-04-01
+
 ### Added
 - **Custom anomaly detector support** — full CRUD for custom anomaly detectors (`builtin:davis.anomaly-detectors`): `get`, `describe`, `create`, `edit`, `delete`, and `apply`; accepts both flattened YAML format (human-friendly, recommended) and raw Settings API format; source defaults to `"dtctl"` when omitted; `describe` includes recent problems cross-reference via DQL; filter by enabled state with `--enabled` / `--enabled=false`; alias `ad` for brevity (e.g., `dtctl get ad`)
+- **DQL auto-refresh OAuth token on 401** — long-running `dtctl query` sessions now automatically refresh the OAuth token when a 401 is received during poll loops, preventing interrupted queries on token expiry
+
+### Fixed
+- **Shell completion: bash v2 with zsh alias support** — switched bash completion from v1 (`GenBashCompletion`) to v2 (`GenBashCompletionV2`) which includes a self-contained `__dtctl_init_completion` fallback, eliminating the `_init_completion: command not found` error when the `bash-completion` package is not installed; added `compdef dt=dtctl` instructions for zsh users with aliases; added a note about clearing stale completion files when upgrading
+- **Missing safety check on `restore trash`** — `restoreTrashCmd` allowed trash restoration even in `readonly` contexts; now enforces `SetupWithSafety(safety.OperationUpdate)` consistent with all other restore subcommands
+- **OAuth messages polluting stdout in agent mode** — interactive browser authentication messages ("Opening browser...", auth URL, fallback instructions) were printed to stdout, corrupting the structured JSON envelope in agent mode (`-A`); these are now redirected to stderr
+- **Safety checks enforced for `apply` on settings objects** — `apply` with settings resources now correctly enforces safety checks before making API calls
+- **SLO evaluation table output** — fixed formatting issues in SLO evaluation results table output
+- **Build version injection** — `make build` and CI build workflow now correctly inject version, commit, and date into the binary via `-ldflags`; previously targeted non-existent `cmd.version` vars instead of `pkg/version.Version`
+
+### Changed
+- **Architecture refactor** — reduced boilerplate across command handlers with centralized `SetupClient`/`SetupWithSafety` helpers; split the monolithic `pkg/apply/applier.go` into per-resource files; extracted reusable pagination helper into `pkg/client/pagination.go`; fixed remaining stdout usage in library code
 
 ## [0.21.0] - 2026-03-30
 
@@ -323,6 +337,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated Go version to 1.24.13 in security workflow
 
+[0.22.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.21.0...v0.22.0
+[0.21.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.20.2...v0.21.0
+[0.20.2]: https://github.com/dynatrace-oss/dtctl/compare/v0.20.1...v0.20.2
+[0.20.1]: https://github.com/dynatrace-oss/dtctl/compare/v0.20.0...v0.20.1
+[0.20.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.19.1...v0.20.0
+[0.19.1]: https://github.com/dynatrace-oss/dtctl/compare/v0.19.0...v0.19.1
+[0.19.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.16.0...v0.17.0
+[0.16.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.15.0...v0.16.0
+[0.15.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/dynatrace-oss/dtctl/compare/v0.13.3...v0.14.0
 [0.13.3]: https://github.com/dynatrace-oss/dtctl/compare/v0.13.2...v0.13.3
 [0.13.2]: https://github.com/dynatrace-oss/dtctl/compare/v0.13.1...v0.13.2

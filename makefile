@@ -7,7 +7,7 @@ DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 # Minimum test coverage percentage. Raise as coverage improves: 60 -> 70 -> 80 -> 85.
 COVERAGE_THRESHOLD ?= 60
 
-LDFLAGS = -ldflags "-X github.com/dynatrace-oss/dtctl/cmd.version=$(VERSION) -X github.com/dynatrace-oss/dtctl/cmd.commit=$(COMMIT) -X github.com/dynatrace-oss/dtctl/cmd.date=$(DATE) -s -w"
+LDFLAGS = -ldflags "-X github.com/dynatrace-oss/dtctl/pkg/version.Version=$(VERSION) -X github.com/dynatrace-oss/dtctl/pkg/version.Commit=$(COMMIT) -X github.com/dynatrace-oss/dtctl/pkg/version.Date=$(DATE) -s -w"
 INSTALL_BIN_DIR ?= $(if $(GOBIN),$(GOBIN),$(shell go env GOPATH)/bin)
 
 MD_LINT_CLI_IMAGE := "ghcr.io/igorshubovych/markdownlint-cli:v0.31.1"
