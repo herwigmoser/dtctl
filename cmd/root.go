@@ -1,14 +1,19 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/dynatrace-oss/dtctl/pkg/aidetect"
 	"github.com/dynatrace-oss/dtctl/pkg/apply"
@@ -19,6 +24,7 @@ import (
 	"github.com/dynatrace-oss/dtctl/pkg/output"
 	"github.com/dynatrace-oss/dtctl/pkg/safety"
 	"github.com/dynatrace-oss/dtctl/pkg/suggest"
+	"github.com/dynatrace-oss/dtctl/pkg/tracing"
 )
 
 var (
@@ -32,6 +38,17 @@ var (
 	chunkSize    int64
 	agentMode    bool // --agent/-A flag: wrap output in machine-readable envelope
 	noAgent      bool // --no-agent flag: opt out of auto-detected agent mode
+
+	// tracingRootCtx holds the context carrying the root OTel span for this
+	// invocation. Set by execute() and read by NewClientFromConfig to inject
+	// W3C trace context headers on outgoing Dynatrace API requests.
+	//
+	// This is a package-level variable (rather than a function parameter) because
+	// NewClientFromConfig is referenced as a function value in breakpoint_helpers.go
+	// and changing its signature would cascade across 100+ call sites. The global is
+	// acceptable here because dtctl is a single-invocation CLI: execute() sets it
+	// once before any client is created, and the process exits shortly after.
+	tracingRootCtx context.Context
 )
 
 // rootCmd represents the base command
@@ -48,32 +65,64 @@ SLOs, queries, and other Dynatrace platform capabilities.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() {
+	os.Exit(execute())
+}
+
+// execute runs the CLI and returns an exit code. Separating it from Execute
+// ensures that deferred functions (e.g. tracing shutdown/flush) run before
+// os.Exit is called, which os.Exit would otherwise bypass.
+func execute() int {
 	// Setup enhanced error handling after all subcommands are registered
 	setupErrorHandlers(rootCmd)
 
-	// --- Alias resolution (before Cobra parses args) ---
-	// Load config quietly; if it fails, skip alias resolution (the real
-	// command will produce the proper error later).
+	// --- Alias resolution (before Cobra parses args AND before tracing init) ---
+	// Resolving aliases first ensures the span name reflects the real command,
+	// not the pre-expansion alias. Load config quietly; if it fails, skip alias
+	// resolution (the real command will produce the proper error later).
+	spanArgs := os.Args[1:]
 	if cfg, err := config.Load(); err == nil {
 		// os.Args[0] is the binary name; work with os.Args[1:]
 		expanded, isShell, err := resolveAlias(os.Args[1:], cfg)
 		if err != nil {
 			output.PrintHumanError("%s", err)
-			os.Exit(1)
+			return 1
 		}
 
 		if isShell {
 			if err := execShellAlias(expanded[0]); err != nil {
-				os.Exit(1)
+				return 1
 			}
-			return
+			return 0
 		}
 
 		if expanded != nil {
 			rootCmd.SetArgs(expanded)
+			spanArgs = expanded
 		}
 	}
 	// --- End alias resolution ---
+
+	// Initialise OpenTelemetry tracing. Done after alias resolution so that
+	// the span name reflects the actual command (not a pre-alias invocation).
+	// The root span covers the entire invocation; shutdown flushes buffered
+	// spans before the process exits (critical for short-lived processes that
+	// OneAgent cannot instrument).
+	spanName := buildSpanName(spanArgs)
+	safeArgs := extractSafeArgs(spanArgs)
+	tracingCtx, shutdownTracing, tracingErr := tracing.Init(
+		context.Background(), spanName, safeArgs, verbosity,
+	)
+	tracingRootCtx = tracingCtx
+	rootSpan := trace.SpanFromContext(tracingCtx)
+	defer func() {
+		flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		shutdownTracing(flushCtx)
+	}()
+	if tracingErr != nil {
+		// Non-fatal: warn and continue. The CLI still works; spans may not export.
+		fmt.Fprintf(os.Stderr, "dtctl: tracing: %v (check OTEL_EXPORTER_OTLP_ENDPOINT or unset it to disable export)\n", tracingErr)
+	}
 
 	if err := rootCmd.Execute(); err != nil {
 		errStr := err.Error()
@@ -98,11 +147,15 @@ func Execute() {
 		allHints = append(allHints, urlHints...)
 		allHints = append(allHints, authHints...)
 
+		// Record the error on the root span so it appears in traces.
+		rootSpan.SetStatus(codes.Error, err.Error())
+		rootSpan.RecordError(err)
+
 		if agentMode || plainMode {
 			detail := errorToDetail(err)
 			detail.Suggestions = append(detail.Suggestions, allHints...)
 			_ = output.PrintError(os.Stderr, detail)
-			os.Exit(exitCodeForError(err))
+			return exitCodeForError(err)
 		}
 
 		output.PrintHumanError("%s", err)
@@ -112,8 +165,10 @@ func Execute() {
 				output.PrintHint("%s", hint)
 			}
 		}
-		os.Exit(exitCodeForError(err))
+		return exitCodeForError(err)
 	}
+	rootSpan.SetStatus(codes.Ok, "")
+	return 0
 }
 
 // collectFlags gathers all flag names from a command and its parents
@@ -568,7 +623,94 @@ func NewClientFromConfig(cfg *config.Config) (*client.Client, error) {
 	} else {
 		c.SetVerbosity(verbosity)
 	}
+	// Propagate W3C trace context on every Dynatrace API request.
+	if tracingRootCtx != nil {
+		c.InjectTraceContext(tracingRootCtx)
+	}
 	return c, nil
+}
+
+// flagsTakingValues is the set of persistent long flags that consume the next
+// argument as their value when written without an inline '='.  Boolean and
+// count flags are intentionally omitted so their neighbour is not skipped.
+//
+// NOTE: This must be kept in sync with the PersistentFlags definitions in
+// init() at the bottom of this file.  TestFlagsTakingValues_SyncGuard verifies
+// this automatically.
+var flagsTakingValues = map[string]bool{
+	"--config":     true,
+	"--context":    true,
+	"--output":     true,
+	"--chunk-size": true,
+}
+
+// shortFlagsTakingValues maps short flag letters to true when they consume the
+// next argument as their value.  Must be kept in sync with init().
+// TestFlagsTakingValues_SyncGuard verifies this automatically.
+var shortFlagsTakingValues = map[string]bool{
+	"-o": true, // --output
+}
+
+// buildSpanName derives a safe OTel span name from the supplied command-line
+// arguments (typically the alias-expanded args). Only the verb and resource
+// (first two positional tokens) are included; further positional arguments
+// (e.g. resource IDs or names) and all flag names/values are excluded to avoid
+// leaking sensitive data into trace span names.
+//
+// Leading flags are skipped so that invocations like
+//
+//	dtctl --context prod get workflows
+//
+// correctly produce "dtctl get workflows" instead of just "dtctl".
+// For long flags that accept a separate value token (see flagsTakingValues),
+// and short flags that accept a value (see shortFlagsTakingValues), those
+// value tokens are also skipped.
+func buildSpanName(args []string) string {
+	parts := extractSafeArgs(args)
+	if len(parts) == 0 {
+		return "dtctl"
+	}
+	return "dtctl " + strings.Join(parts, " ")
+}
+
+// extractSafeArgs returns the first two positional tokens (verb + resource)
+// from the supplied command-line arguments, skipping all flags and their
+// values. The result is safe for use in span names and resource attributes
+// because it never contains flag values, resource IDs, or other potentially
+// sensitive data.
+func extractSafeArgs(args []string) []string {
+	var parts []string
+	i := 0
+	for i < len(args) && len(parts) < 2 {
+		arg := args[i]
+		switch {
+		case strings.HasPrefix(arg, "--"):
+			// Long flag: skip it.
+			i++
+			// For value-taking flags without inline '=' (e.g. --context prod),
+			// also skip the associated value token.
+			flagName := arg
+			if eqIdx := strings.Index(arg, "="); eqIdx >= 0 {
+				flagName = arg[:eqIdx]
+			}
+			if flagsTakingValues[flagName] && !strings.Contains(arg, "=") &&
+				i < len(args) && !strings.HasPrefix(args[i], "-") {
+				i++ // skip the value token
+			}
+		case strings.HasPrefix(arg, "-"):
+			// Short flag (e.g. -v, -o json, -Av).
+			// For value-taking short flags, also skip the next token.
+			i++
+			if shortFlagsTakingValues[arg] &&
+				i < len(args) && !strings.HasPrefix(args[i], "-") {
+				i++ // skip the value token
+			}
+		default:
+			parts = append(parts, arg)
+			i++
+		}
+	}
+	return parts
 }
 
 // NewDQLExecutorFromConfig creates a DQL executor from a config and client, with OAuth

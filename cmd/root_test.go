@@ -19,6 +19,52 @@ import (
 	"github.com/dynatrace-oss/dtctl/pkg/suggest"
 )
 
+// TestBuildSpanName verifies that buildSpanName correctly extracts the verb and
+// resource from a variety of command-line argument slices, including those with
+// leading global flags and their values.
+func TestBuildSpanName(t *testing.T) {
+	tests := []struct {
+		args []string
+		want string
+	}{
+		{nil, "dtctl"},
+		{[]string{}, "dtctl"},
+		{[]string{"get"}, "dtctl get"},
+		{[]string{"get", "workflows"}, "dtctl get workflows"},
+		// Flags interspersed before the verb should be skipped.
+		{[]string{"--context", "prod", "get", "workflows"}, "dtctl get workflows"},
+		{[]string{"--context=prod", "get", "workflows"}, "dtctl get workflows"},
+		{[]string{"--plain", "get", "workflows"}, "dtctl get workflows"},
+		{[]string{"-v", "get", "workflows"}, "dtctl get workflows"},
+		// Short flags that take values: -o json should skip "json".
+		{[]string{"-o", "json", "get", "workflows"}, "dtctl get workflows"},
+		// Mixed short and long flags.
+		{[]string{"-v", "--context", "prod", "get", "workflows"}, "dtctl get workflows"},
+		// Extra positional args after verb+resource are not included.
+		{[]string{"get", "workflows", "my-workflow"}, "dtctl get workflows"},
+		// Multiple leading long flags (each with a separate value).
+		{[]string{"--context", "prod", "--output", "json", "get", "workflows"}, "dtctl get workflows"},
+		// Flags after the positional args don't affect the result.
+		{[]string{"get", "workflows", "--output", "json"}, "dtctl get workflows"},
+		// Value-taking flag at the end without a value — must not panic.
+		{[]string{"--context"}, "dtctl"},
+		{[]string{"get", "--context"}, "dtctl get"},
+		// Short value-taking flag at the end without a value.
+		{[]string{"-o"}, "dtctl"},
+		{[]string{"get", "-o"}, "dtctl get"},
+		// Short value-taking flag followed by another flag (not a value).
+		{[]string{"-o", "--plain", "get", "workflows"}, "dtctl get workflows"},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("args=%v", tt.args), func(t *testing.T) {
+			got := buildSpanName(tt.args)
+			if got != tt.want {
+				t.Errorf("buildSpanName(%v) = %q, want %q", tt.args, got, tt.want)
+			}
+		})
+	}
+}
+
 // TestGlobalFlags_Config tests the --config flag
 func TestGlobalFlags_Config(t *testing.T) {
 	tests := []struct {
@@ -1116,5 +1162,56 @@ func TestGetAuthHintsForError(t *testing.T) {
 				t.Errorf("expected no hints, got %v", hints)
 			}
 		})
+	}
+}
+
+// TestFlagsTakingValues_SyncGuard verifies that flagsTakingValues and
+// shortFlagsTakingValues are kept in sync with the PersistentFlags defined in
+// init(). Every non-bool, non-count persistent flag must appear in
+// flagsTakingValues (long form) and, if it has a shorthand, in
+// shortFlagsTakingValues (short form). Bool/count flags must NOT appear.
+func TestFlagsTakingValues_SyncGuard(t *testing.T) {
+	rootCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+		long := "--" + f.Name
+		isBoolOrCount := f.Value.Type() == "bool" || f.Value.Type() == "count"
+
+		if isBoolOrCount {
+			if flagsTakingValues[long] {
+				t.Errorf("bool/count flag %s must NOT be in flagsTakingValues", long)
+			}
+			if f.Shorthand != "" && shortFlagsTakingValues["-"+f.Shorthand] {
+				t.Errorf("bool/count flag -%s must NOT be in shortFlagsTakingValues", f.Shorthand)
+			}
+		} else {
+			if !flagsTakingValues[long] {
+				t.Errorf("value-taking flag %s is defined in init() but missing from flagsTakingValues", long)
+			}
+			if f.Shorthand != "" {
+				short := "-" + f.Shorthand
+				if !shortFlagsTakingValues[short] {
+					t.Errorf("value-taking flag %s (shorthand %s) is defined in init() but missing from shortFlagsTakingValues", long, short)
+				}
+			}
+		}
+	})
+
+	// Reverse check: every entry in the maps must correspond to an actual flag.
+	for long := range flagsTakingValues {
+		name := strings.TrimPrefix(long, "--")
+		if rootCmd.PersistentFlags().Lookup(name) == nil {
+			t.Errorf("flagsTakingValues contains %s but no such PersistentFlag exists", long)
+		}
+	}
+	for short := range shortFlagsTakingValues {
+		letter := strings.TrimPrefix(short, "-")
+		found := false
+		rootCmd.PersistentFlags().VisitAll(func(f *pflag.Flag) {
+			if f.Shorthand == letter {
+				found = true
+			}
+		})
+		if !found {
+			t.Errorf("shortFlagsTakingValues contains %s but no PersistentFlag has that shorthand", short)
+		}
 	}
 }
