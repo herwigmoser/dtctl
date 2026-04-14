@@ -1,7 +1,0 @@
-id: app-a1b2c3d4-0001
-name: Database Insights
-version: 2.3.1
-publisher: Dynatrace
-category: Observability
-description: Monitor database performance and query analysis
-type: ""

@@ -356,6 +356,5 @@ func init() {
 	describeCmd.AddCommand(describeDocumentCmd)
 	describeCmd.AddCommand(describeSegmentCmd)
 	describeCmd.AddCommand(describeAnomalyDetectorCmd)
-	describeCmd.AddCommand(describeHubAppCmd)
 	describeCmd.AddCommand(describeHubExtensionCmd)
 }
