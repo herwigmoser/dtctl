@@ -1,4 +1,4 @@
-ID                  NAME                       LATEST VERSION   PUBLISHER   CATEGORY         DESCRIPTION                               
-ext-a1b2c3d4-0001   Host Monitoring            1.2.3            Dynatrace   Infrastructure   Comprehensive host performance monitoring   
-ext-b2c3d4e5-0002   JMX Extension              2.0.1            Dynatrace   Application      Java management extensions monitoring       
-ext-c3d4e5f6-0003   Custom Metrics Collector   0.9.0            Community   Custom                                                       
+ID                                        NAME                       TYPE          DESCRIPTION                               
+com.dynatrace.extension.host-monitoring   Host Monitoring            EXTENSION_2   Comprehensive host performance monitoring   
+com.dynatrace.extension.jmx               JMX Extension              EXTENSION_2   Java management extensions monitoring       
+custom:my-custom-extension                Custom Metrics Collector   EXTENSION_2                                               

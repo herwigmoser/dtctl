@@ -22,13 +22,10 @@ func NewHandler(c *client.Client) *Handler {
 
 // HubExtension represents a Dynatrace Hub catalog extension
 type HubExtension struct {
-	ID            string `json:"id" table:"ID"`
-	Name          string `json:"name" table:"NAME"`
-	LatestVersion string `json:"latestVersion,omitempty" table:"LATEST_VERSION"`
-	Publisher     string `json:"publisher,omitempty" table:"PUBLISHER,wide"`
-	Category      string `json:"category,omitempty" table:"CATEGORY,wide"`
-	Description   string `json:"description,omitempty" table:"DESCRIPTION,wide"`
-	Type          string `json:"type,omitempty" table:"-"`
+	ID          string `json:"id" table:"ID"`
+	Name        string `json:"name" table:"NAME"`
+	Type        string `json:"type,omitempty" table:"TYPE"`
+	Description string `json:"description,omitempty" table:"DESCRIPTION,wide"`
 }
 
 // HubExtensionList represents a paginated list of Hub extensions

@@ -73,8 +73,8 @@ func TestListExtensions(t *testing.T) {
 				{
 					TotalCount: 2,
 					Items: []HubExtension{
-						{ID: "ext-001", Name: "Extension One", LatestVersion: "1.0.0"},
-						{ID: "ext-002", Name: "Extension Two", LatestVersion: "2.1.3"},
+						{ID: "ext-001", Name: "Extension One", Type: "EXTENSION_2"},
+						{ID: "ext-002", Name: "Extension Two", Type: "EXTENSION_2"},
 					},
 				},
 			},
@@ -155,10 +155,9 @@ func TestGetExtension(t *testing.T) {
 			return
 		}
 		writeJSON(w, http.StatusOK, HubExtension{
-			ID:            "ext-001",
-			Name:          "Extension One",
-			LatestVersion: "1.0.0",
-			Publisher:     "Dynatrace",
+			ID:   "ext-001",
+			Name: "Extension One",
+			Type: "EXTENSION_2",
 		})
 	}))
 	defer server.Close()
@@ -171,8 +170,8 @@ func TestGetExtension(t *testing.T) {
 	if result.ID != "ext-001" {
 		t.Errorf("expected ID ext-001, got %q", result.ID)
 	}
-	if result.Publisher != "Dynatrace" {
-		t.Errorf("expected publisher Dynatrace, got %q", result.Publisher)
+	if result.Type != "EXTENSION_2" {
+		t.Errorf("expected type EXTENSION_2, got %q", result.Type)
 	}
 }
 

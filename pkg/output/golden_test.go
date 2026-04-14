@@ -2064,28 +2064,21 @@ func TestGolden_WatchChanges(t *testing.T) {
 func hubExtensionFixtures() []hub.HubExtension {
 	return []hub.HubExtension{
 		{
-			ID:            "ext-a1b2c3d4-0001",
-			Name:          "Host Monitoring",
-			LatestVersion: "1.2.3",
-			Publisher:     "Dynatrace",
-			Category:      "Infrastructure",
-			Description:   "Comprehensive host performance monitoring",
+			ID:          "com.dynatrace.extension.host-monitoring",
+			Name:        "Host Monitoring",
+			Type:        "EXTENSION_2",
+			Description: "Comprehensive host performance monitoring",
 		},
 		{
-			ID:            "ext-b2c3d4e5-0002",
-			Name:          "JMX Extension",
-			LatestVersion: "2.0.1",
-			Publisher:     "Dynatrace",
-			Category:      "Application",
-			Description:   "Java management extensions monitoring",
+			ID:          "com.dynatrace.extension.jmx",
+			Name:        "JMX Extension",
+			Type:        "EXTENSION_2",
+			Description: "Java management extensions monitoring",
 		},
 		{
-			ID:            "ext-c3d4e5f6-0003",
-			Name:          "Custom Metrics Collector",
-			LatestVersion: "0.9.0",
-			Publisher:     "Community",
-			Category:      "Custom",
-			Description:   "",
+			ID:   "custom:my-custom-extension",
+			Name: "Custom Metrics Collector",
+			Type: "EXTENSION_2",
 		},
 	}
 }

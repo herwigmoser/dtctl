@@ -1,8 +1,6 @@
 {
-  "id": "ext-a1b2c3d4-0001",
+  "id": "com.dynatrace.extension.host-monitoring",
   "name": "Host Monitoring",
-  "latestVersion": "1.2.3",
-  "publisher": "Dynatrace",
-  "category": "Infrastructure",
+  "type": "EXTENSION_2",
   "description": "Comprehensive host performance monitoring"
 }
