@@ -148,4 +148,8 @@ func init() {
 	getCmd.AddCommand(getDocumentsCmd)
 	getCmd.AddCommand(getSegmentsCmd)
 	getCmd.AddCommand(getAnomalyDetectorsCmd)
+	getCmd.AddCommand(getHubAppsCmd)
+	getCmd.AddCommand(getHubAppReleasesCmd)
+	getCmd.AddCommand(getHubExtensionsCmd)
+	getCmd.AddCommand(getHubExtensionReleasesCmd)
 }

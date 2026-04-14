@@ -1,0 +1,4 @@
+ID,NAME,VERSION,PUBLISHER,CATEGORY,DESCRIPTION
+app-a1b2c3d4-0001,Database Insights,2.3.1,Dynatrace,Observability,Monitor database performance and query analysis
+app-b2c3d4e5-0002,Security Analytics,1.0.0,Dynatrace,Security,Unified security event analysis and threat detection
+app-c3d4e5f6-0003,Cost Optimization,1.4.2,Community,FinOps,

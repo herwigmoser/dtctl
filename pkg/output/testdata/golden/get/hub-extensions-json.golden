@@ -1,0 +1,25 @@
+[
+  {
+    "id": "ext-a1b2c3d4-0001",
+    "name": "Host Monitoring",
+    "latestVersion": "1.2.3",
+    "publisher": "Dynatrace",
+    "category": "Infrastructure",
+    "description": "Comprehensive host performance monitoring"
+  },
+  {
+    "id": "ext-b2c3d4e5-0002",
+    "name": "JMX Extension",
+    "latestVersion": "2.0.1",
+    "publisher": "Dynatrace",
+    "category": "Application",
+    "description": "Java management extensions monitoring"
+  },
+  {
+    "id": "ext-c3d4e5f6-0003",
+    "name": "Custom Metrics Collector",
+    "latestVersion": "0.9.0",
+    "publisher": "Community",
+    "category": "Custom"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "id": "ext-a1b2c3d4-0001",
+  "name": "Host Monitoring",
+  "latestVersion": "1.2.3",
+  "publisher": "Dynatrace",
+  "category": "Infrastructure",
+  "description": "Comprehensive host performance monitoring"
+}

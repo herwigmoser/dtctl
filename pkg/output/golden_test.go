@@ -19,6 +19,7 @@ import (
 	"github.com/dynatrace-oss/dtctl/pkg/resources/extension"
 	"github.com/dynatrace-oss/dtctl/pkg/resources/gcpconnection"
 	"github.com/dynatrace-oss/dtctl/pkg/resources/gcpmonitoringconfig"
+	"github.com/dynatrace-oss/dtctl/pkg/resources/hub"
 	"github.com/dynatrace-oss/dtctl/pkg/resources/iam"
 	"github.com/dynatrace-oss/dtctl/pkg/resources/segment"
 	"github.com/dynatrace-oss/dtctl/pkg/resources/settings"
@@ -2054,4 +2055,160 @@ func TestGolden_WatchChanges(t *testing.T) {
 	}
 
 	assertGolden(t, "get/workflows-watch-changes", buf.String())
+}
+
+// ---------------------------------------------------------------------------
+// Hub fixtures
+// ---------------------------------------------------------------------------
+
+func hubAppFixtures() []hub.HubApp {
+	return []hub.HubApp{
+		{
+			ID:          "app-a1b2c3d4-0001",
+			Name:        "Database Insights",
+			Version:     "2.3.1",
+			Publisher:   "Dynatrace",
+			Category:    "Observability",
+			Description: "Monitor database performance and query analysis",
+		},
+		{
+			ID:          "app-b2c3d4e5-0002",
+			Name:        "Security Analytics",
+			Version:     "1.0.0",
+			Publisher:   "Dynatrace",
+			Category:    "Security",
+			Description: "Unified security event analysis and threat detection",
+		},
+		{
+			ID:          "app-c3d4e5f6-0003",
+			Name:        "Cost Optimization",
+			Version:     "1.4.2",
+			Publisher:   "Community",
+			Category:    "FinOps",
+			Description: "",
+		},
+	}
+}
+
+func hubExtensionFixtures() []hub.HubExtension {
+	return []hub.HubExtension{
+		{
+			ID:            "ext-a1b2c3d4-0001",
+			Name:          "Host Monitoring",
+			LatestVersion: "1.2.3",
+			Publisher:     "Dynatrace",
+			Category:      "Infrastructure",
+			Description:   "Comprehensive host performance monitoring",
+		},
+		{
+			ID:            "ext-b2c3d4e5-0002",
+			Name:          "JMX Extension",
+			LatestVersion: "2.0.1",
+			Publisher:     "Dynatrace",
+			Category:      "Application",
+			Description:   "Java management extensions monitoring",
+		},
+		{
+			ID:            "ext-c3d4e5f6-0003",
+			Name:          "Custom Metrics Collector",
+			LatestVersion: "0.9.0",
+			Publisher:     "Community",
+			Category:      "Custom",
+			Description:   "",
+		},
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Golden tests: Hub apps
+// ---------------------------------------------------------------------------
+
+func TestGolden_GetHubApps(t *testing.T) {
+	apps := hubAppFixtures()
+
+	formats := map[string]string{
+		"table": "table",
+		"wide":  "wide",
+		"json":  "json",
+		"yaml":  "yaml",
+		"csv":   "csv",
+	}
+
+	for name, format := range formats {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+			printer := NewPrinterWithWriter(format, &buf)
+			if err := printer.PrintList(apps); err != nil {
+				t.Fatalf("PrintList failed: %v", err)
+			}
+			assertGolden(t, "get/hub-apps-"+name, buf.String())
+		})
+	}
+}
+
+func TestGolden_DescribeHubApp(t *testing.T) {
+	app := hubAppFixtures()[0]
+
+	formats := map[string]string{
+		"json": "json",
+		"yaml": "yaml",
+	}
+
+	for name, format := range formats {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+			printer := NewPrinterWithWriter(format, &buf)
+			if err := printer.Print(app); err != nil {
+				t.Fatalf("Print failed: %v", err)
+			}
+			assertGolden(t, "describe/hub-app-"+name, buf.String())
+		})
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Golden tests: Hub extensions
+// ---------------------------------------------------------------------------
+
+func TestGolden_GetHubExtensions(t *testing.T) {
+	exts := hubExtensionFixtures()
+
+	formats := map[string]string{
+		"table": "table",
+		"wide":  "wide",
+		"json":  "json",
+		"yaml":  "yaml",
+		"csv":   "csv",
+	}
+
+	for name, format := range formats {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+			printer := NewPrinterWithWriter(format, &buf)
+			if err := printer.PrintList(exts); err != nil {
+				t.Fatalf("PrintList failed: %v", err)
+			}
+			assertGolden(t, "get/hub-extensions-"+name, buf.String())
+		})
+	}
+}
+
+func TestGolden_DescribeHubExtension(t *testing.T) {
+	ext := hubExtensionFixtures()[0]
+
+	formats := map[string]string{
+		"json": "json",
+		"yaml": "yaml",
+	}
+
+	for name, format := range formats {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+			printer := NewPrinterWithWriter(format, &buf)
+			if err := printer.Print(ext); err != nil {
+				t.Fatalf("Print failed: %v", err)
+			}
+			assertGolden(t, "describe/hub-extension-"+name, buf.String())
+		})
+	}
 }

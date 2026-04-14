@@ -1,0 +1,25 @@
+[
+  {
+    "id": "app-a1b2c3d4-0001",
+    "name": "Database Insights",
+    "version": "2.3.1",
+    "publisher": "Dynatrace",
+    "category": "Observability",
+    "description": "Monitor database performance and query analysis"
+  },
+  {
+    "id": "app-b2c3d4e5-0002",
+    "name": "Security Analytics",
+    "version": "1.0.0",
+    "publisher": "Dynatrace",
+    "category": "Security",
+    "description": "Unified security event analysis and threat detection"
+  },
+  {
+    "id": "app-c3d4e5f6-0003",
+    "name": "Cost Optimization",
+    "version": "1.4.2",
+    "publisher": "Community",
+    "category": "FinOps"
+  }
+]

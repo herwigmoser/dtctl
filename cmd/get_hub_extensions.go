@@ -1,0 +1,88 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/dynatrace-oss/dtctl/pkg/resources/hub"
+)
+
+// getHubExtensionsCmd retrieves Hub catalog extensions
+var getHubExtensionsCmd = &cobra.Command{
+	Use:     "hub-extensions [id]",
+	Aliases: []string{"hub-extension"},
+	Short:   "Get Dynatrace Hub catalog extensions",
+	Long: `Get Dynatrace Hub catalog extensions.
+
+Examples:
+  # List all Hub extensions
+  dtctl get hub-extensions
+
+  # Get a specific Hub extension by ID
+  dtctl get hub-extensions my-extension-id
+
+  # Output as JSON
+  dtctl get hub-extensions -o json
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		_, c, printer, err := Setup()
+		if err != nil {
+			return err
+		}
+
+		handler := hub.NewHandler(c)
+
+		if len(args) > 0 {
+			ext, err := handler.GetExtension(args[0])
+			if err != nil {
+				return err
+			}
+			return printer.Print(ext)
+		}
+
+		list, err := handler.ListExtensions(GetChunkSize())
+		if err != nil {
+			return err
+		}
+		return printer.PrintList(list.Items)
+	},
+}
+
+// getHubExtensionReleasesCmd retrieves releases for a Hub catalog extension
+var getHubExtensionReleasesCmd = &cobra.Command{
+	Use:     "hub-extension-releases <id>",
+	Aliases: []string{"hub-extension-release"},
+	Short:   "Get releases for a Dynatrace Hub extension",
+	Long: `Get releases for a Dynatrace Hub catalog extension.
+
+Examples:
+  # List all releases for a Hub extension
+  dtctl get hub-extension-releases my-extension-id
+
+  # Output as JSON
+  dtctl get hub-extension-releases my-extension-id -o json
+`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return fmt.Errorf("requires an extension ID argument")
+		}
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		id := args[0]
+
+		_, c, printer, err := Setup()
+		if err != nil {
+			return err
+		}
+
+		handler := hub.NewHandler(c)
+
+		list, err := handler.ListExtensionReleases(id, GetChunkSize())
+		if err != nil {
+			return err
+		}
+		return printer.PrintList(list.Items)
+	},
+}
