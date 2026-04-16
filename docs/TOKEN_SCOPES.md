@@ -8,12 +8,12 @@ This document lists the Dynatrace platform token scopes required for each safety
 
 ## Quick Reference
 
-| Safety Level | Use Case | Token Type |
-|--------------|----------|------------|
-| `readonly` | Production monitoring, troubleshooting | Read-only token |
-| `readwrite-mine` | Personal development, sandbox | Standard token |
-| `readwrite-all` | Team environments, administration | Standard token |
-| `dangerously-unrestricted` | Dev environments, bucket management | Full access token |
+| Safety Level               | Use Case                               | Token Type        |
+| -------------------------- | -------------------------------------- | ----------------- |
+| `readonly`                 | Production monitoring, troubleshooting | Read-only token   |
+| `readwrite-mine`           | Personal development, sandbox          | Standard token    |
+| `readwrite-all`            | Team environments, administration      | Standard token    |
+| `dangerously-unrestricted` | Dev environments, bucket management    | Full access token |
 
 For creating platform tokens, see [Dynatrace Platform Tokens documentation](https://docs.dynatrace.com/docs/manage/identity-access-management/access-tokens-and-oauth-clients/platform-tokens).
 
@@ -281,124 +281,135 @@ email:emails:send
 ## Quick Reference by Resource Type
 
 ### Workflows
-| Scope | Description |
-|-------|-------------|
-| `automation:workflows:read` | Read workflow definitions |
+
+| Scope                        | Description                      |
+| ---------------------------- | -------------------------------- |
+| `automation:workflows:read`  | Read workflow definitions        |
 | `automation:workflows:write` | Create, update, delete workflows |
-| `automation:workflows:run` | Execute workflows |
+| `automation:workflows:run`   | Execute workflows                |
 
 ### Documents (Dashboards & Notebooks)
-| Scope | Description |
-|-------|-------------|
-| `document:documents:read` | Read dashboards and notebooks |
-| `document:documents:write` | Create, update documents |
-| `document:documents:delete` | Delete documents (moves to trash) |
-| `document:documents:admin` | Admin access for ownership |
-| `document:direct-shares:read` | Read direct shares |
-| `document:direct-shares:write` | Create/manage direct shares |
-| `document:direct-shares:delete` | Delete direct shares |
-| `document:environment-shares:read` | Read environment shares |
-| `document:environment-shares:write` | Create environment shares |
-| `document:environment-shares:claim` | Claim environment shares |
-| `document:environment-shares:delete` | Delete environment shares |
-| `document:trash.documents:read` | Read trashed documents |
-| `document:trash.documents:restore` | Restore from trash |
-| `document:trash.documents:delete` | Permanently delete from trash |
+
+| Scope                                | Description                       |
+| ------------------------------------ | --------------------------------- |
+| `document:documents:read`            | Read dashboards and notebooks     |
+| `document:documents:write`           | Create, update documents          |
+| `document:documents:delete`          | Delete documents (moves to trash) |
+| `document:documents:admin`           | Admin access for ownership        |
+| `document:direct-shares:read`        | Read direct shares                |
+| `document:direct-shares:write`       | Create/manage direct shares       |
+| `document:direct-shares:delete`      | Delete direct shares              |
+| `document:environment-shares:read`   | Read environment shares           |
+| `document:environment-shares:write`  | Create environment shares         |
+| `document:environment-shares:claim`  | Claim environment shares          |
+| `document:environment-shares:delete` | Delete environment shares         |
+| `document:trash.documents:read`      | Read trashed documents            |
+| `document:trash.documents:restore`   | Restore from trash                |
+| `document:trash.documents:delete`    | Permanently delete from trash     |
 
 ### DQL Queries & Grail Data
-| Scope | Description |
-|-------|-------------|
-| `storage:logs:read` | Read logs |
-| `storage:logs:write` | Write logs |
-| `storage:events:read` | Read events |
-| `storage:events:write` | Write events |
-| `storage:metrics:read` | Read metrics |
-| `storage:metrics:write` | Write metrics |
-| `storage:spans:read` | Read spans |
-| `storage:bizevents:read` | Read business events |
-| `storage:entities:read` | Read entities |
-| `storage:smartscape:read` | Read topology |
-| `storage:system:read` | Read system tables |
-| `storage:security.events:read` | Read security events |
-| `storage:application.snapshots:read` | Read app snapshots |
-| `storage:user.events:read` | Read user events |
-| `storage:user.sessions:read` | Read user sessions |
-| `storage:user.replays:read` | Read session replays |
-| `storage:fieldsets:read` | Read fieldsets |
-| `storage:fieldset-definitions:read` | Read fieldset schemas |
-| `storage:fieldset-definitions:write` | Write fieldset schemas |
-| `storage:files:read` | Read files/lookup tables |
-| `storage:files:write` | Write files/lookup tables |
-| `storage:files:delete` | Delete files/lookup tables |
-| `storage:filter-segments:read` | Read filter segments |
-| `storage:filter-segments:write` | Write filter segments |
-| `storage:filter-segments:share` | Share filter segments |
-| `storage:filter-segments:delete` | Delete own filter segments |
-| `storage:filter-segments:admin` | Admin all filter segments |
-| `storage:records:delete` | Delete records in Grail |
+
+| Scope                                | Description                |
+| ------------------------------------ | -------------------------- |
+| `storage:logs:read`                  | Read logs                  |
+| `storage:logs:write`                 | Write logs                 |
+| `storage:events:read`                | Read events                |
+| `storage:events:write`               | Write events               |
+| `storage:metrics:read`               | Read metrics               |
+| `storage:metrics:write`              | Write metrics              |
+| `storage:spans:read`                 | Read spans                 |
+| `storage:bizevents:read`             | Read business events       |
+| `storage:entities:read`              | Read entities              |
+| `storage:smartscape:read`            | Read topology              |
+| `storage:system:read`                | Read system tables         |
+| `storage:security.events:read`       | Read security events       |
+| `storage:application.snapshots:read` | Read app snapshots         |
+| `storage:user.events:read`           | Read user events           |
+| `storage:user.sessions:read`         | Read user sessions         |
+| `storage:user.replays:read`          | Read session replays       |
+| `storage:fieldsets:read`             | Read fieldsets             |
+| `storage:fieldset-definitions:read`  | Read fieldset schemas      |
+| `storage:fieldset-definitions:write` | Write fieldset schemas     |
+| `storage:files:read`                 | Read files/lookup tables   |
+| `storage:files:write`                | Write files/lookup tables  |
+| `storage:files:delete`               | Delete files/lookup tables |
+| `storage:filter-segments:read`       | Read filter segments       |
+| `storage:filter-segments:write`      | Write filter segments      |
+| `storage:filter-segments:share`      | Share filter segments      |
+| `storage:filter-segments:delete`     | Delete own filter segments |
+| `storage:filter-segments:admin`      | Admin all filter segments  |
+| `storage:records:delete`             | Delete records in Grail    |
 
 ### Bucket Management
-| Scope | Description |
-|-------|-------------|
-| `storage:buckets:read` | Read from buckets |
-| `storage:buckets:write` | Write to buckets |
-| `storage:bucket-definitions:read` | Read bucket definitions |
-| `storage:bucket-definitions:write` | Create/update bucket definitions |
-| `storage:bucket-definitions:delete` | Delete bucket definitions |
-| `storage:bucket-definitions:truncate` | Truncate bucket data |
+
+| Scope                                 | Description                      |
+| ------------------------------------- | -------------------------------- |
+| `storage:buckets:read`                | Read from buckets                |
+| `storage:buckets:write`               | Write to buckets                 |
+| `storage:bucket-definitions:read`     | Read bucket definitions          |
+| `storage:bucket-definitions:write`    | Create/update bucket definitions |
+| `storage:bucket-definitions:delete`   | Delete bucket definitions        |
+| `storage:bucket-definitions:truncate` | Truncate bucket data             |
 
 ### SLOs
-| Scope | Description |
-|-------|-------------|
-| `slo:slos:read` | Read SLOs |
-| `slo:slos:write` | Create, update, delete, evaluate SLOs |
-| `slo:objective-templates:read` | Read SLO templates |
+
+| Scope                          | Description                           |
+| ------------------------------ | ------------------------------------- |
+| `slo:slos:read`                | Read SLOs                             |
+| `slo:slos:write`               | Create, update, delete, evaluate SLOs |
+| `slo:objective-templates:read` | Read SLO templates                    |
 
 ### Settings API
-| Scope | Description |
-|-------|-------------|
-| `settings:schemas:read` | Read settings schemas |
-| `settings:objects:read` | Read settings objects |
+
+| Scope                    | Description                     |
+| ------------------------ | ------------------------------- |
+| `settings:schemas:read`  | Read settings schemas           |
+| `settings:objects:read`  | Read settings objects           |
 | `settings:objects:write` | Create, update, delete settings |
-| `settings:objects:admin` | Admin access for ownership |
+| `settings:objects:admin` | Admin access for ownership      |
 
 ### Extensions API
-| Scope | Description |
-|-------|-------------|
-| `extensions:definitions:read` | Read extension definitions |
-| `extensions:configurations:read` | Read monitoring configurations |
+
+| Scope                             | Description                                      |
+| --------------------------------- | ------------------------------------------------ |
+| `extensions:definitions:read`     | Read extension definitions                       |
+| `extensions:configurations:read`  | Read monitoring configurations                   |
 | `extensions:configurations:write` | Create, update, delete monitoring configurations |
 
 ### Hub Catalog API
-| Scope | Description |
-|-------|-------------|
+
+| Scope                         | Description                                            |
+| ----------------------------- | ------------------------------------------------------ |
 | `extensions:definitions:read` | Browse Hub catalog extensions and releases (read-only) |
 
 ### Davis AI
-| Scope | Description |
-|-------|-------------|
-| `davis:analyzers:read` | View analyzers |
-| `davis:analyzers:execute` | Execute analyzers |
-| `davis-copilot:conversations:execute` | CoPilot chat |
-| `davis-copilot:nl2dql:execute` | Natural language to DQL |
-| `davis-copilot:dql2nl:execute` | DQL to natural language |
-| `davis-copilot:document-search:execute` | Document search |
+
+| Scope                                   | Description             |
+| --------------------------------------- | ----------------------- |
+| `davis:analyzers:read`                  | View analyzers          |
+| `davis:analyzers:execute`               | Execute analyzers       |
+| `davis-copilot:conversations:execute`   | CoPilot chat            |
+| `davis-copilot:nl2dql:execute`          | Natural language to DQL |
+| `davis-copilot:dql2nl:execute`          | DQL to natural language |
+| `davis-copilot:document-search:execute` | Document search         |
 
 ### App Engine
-| Scope | Description |
-|-------|-------------|
-| `app-engine:apps:install` | Install/update apps |
-| `app-engine:apps:run` | List/run apps, user metadata |
-| `app-engine:apps:delete` | Uninstall apps |
-| `app-engine:functions:run` | Execute functions |
-| `app-engine:edge-connects:read` | Read EdgeConnect |
-| `app-engine:edge-connects:write` | Create/update EdgeConnect |
-| `app-engine:edge-connects:delete` | Delete EdgeConnect |
+
+| Scope                             | Description                  |
+| --------------------------------- | ---------------------------- |
+| `app-engine:apps:install`         | Install/update apps          |
+| `app-engine:apps:run`             | List/run apps, user metadata |
+| `app-engine:apps:delete`          | Uninstall apps               |
+| `app-engine:functions:run`        | Execute functions            |
+| `app-engine:edge-connects:read`   | Read EdgeConnect             |
+| `app-engine:edge-connects:write`  | Create/update EdgeConnect    |
+| `app-engine:edge-connects:delete` | Delete EdgeConnect           |
 
 ### Notifications
-| Scope | Description |
-|-------|-------------|
-| `notification:notifications:read` | Read notification configurations |
+
+| Scope                              | Description                               |
+| ---------------------------------- | ----------------------------------------- |
+| `notification:notifications:read`  | Read notification configurations          |
 | `notification:notifications:write` | Create/update notification configurations |
 
 ### Live Debugger
@@ -412,13 +423,14 @@ email:emails:send
 
 > **Note**: The `iam:users:read` and `iam:groups:read` scopes are defined in the IAM API spec but may not be available in all token management UIs (e.g., the platform token page). If unavailable, user and group listing features will not work with that token type.
 
-| Scope | Description |
-|-------|-------------|
-| `iam:users:read` | Read users |
-| `iam:groups:read` | Read groups |
+| Scope               | Description   |
+| ------------------- | ------------- |
+| `iam:users:read`    | Read users    |
+| `iam:groups:read`   | Read groups   |
 | `iam:policies:read` | Read policies |
 
 ### Other
-| Scope | Description |
-|-------|-------------|
+
+| Scope               | Description              |
+| ------------------- | ------------------------ |
 | `email:emails:send` | Send notification emails |
