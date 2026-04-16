@@ -51,11 +51,11 @@ Examples:
 			if len(args) > 0 {
 				name = args[0]
 			}
-			fmt.Printf("Dry run: would resolve GCP monitoring config %q\n", name)
+			output.PrintInfo("Dry run: would resolve GCP monitoring config %q", name)
 			if enableGCPMonitoringServiceAccountID != "" {
-				fmt.Printf("Dry run: would update linked GCP connection with service account %q\n", enableGCPMonitoringServiceAccountID)
+				output.PrintInfo("Dry run: would update linked GCP connection with service account %q", enableGCPMonitoringServiceAccountID)
 			}
-			fmt.Println("Dry run: would enable monitoring config and all credentials")
+			output.PrintInfo("Dry run: would enable monitoring config and all credentials")
 			return nil
 		}
 

@@ -51,18 +51,18 @@ Examples:
 			if len(args) > 0 {
 				name = args[0]
 			}
-			fmt.Printf("Dry run: would resolve Azure monitoring config %q\n", name)
+			output.PrintInfo("Dry run: would resolve Azure monitoring config %q", name)
 			if enableAzureMonitoringDirectoryID != "" || enableAzureMonitoringApplicationID != "" {
-				fmt.Printf("Dry run: would update linked Azure connection")
+				msg := "Dry run: would update linked Azure connection"
 				if enableAzureMonitoringDirectoryID != "" {
-					fmt.Printf(" directoryId=%q", enableAzureMonitoringDirectoryID)
+					msg += fmt.Sprintf(" directoryId=%q", enableAzureMonitoringDirectoryID)
 				}
 				if enableAzureMonitoringApplicationID != "" {
-					fmt.Printf(" applicationId=%q", enableAzureMonitoringApplicationID)
+					msg += fmt.Sprintf(" applicationId=%q", enableAzureMonitoringApplicationID)
 				}
-				fmt.Println()
+				output.PrintInfo(msg)
 			}
-			fmt.Println("Dry run: would enable monitoring config and all credentials")
+			output.PrintInfo("Dry run: would enable monitoring config and all credentials")
 			return nil
 		}
 
@@ -82,7 +82,7 @@ Examples:
 			if err != nil {
 				existing, err = monitoringHandler.Get(identifier)
 				if err != nil {
-					return fmt.Errorf("Azure monitoring config %q not found by name or ID", identifier)
+					return fmt.Errorf("azure monitoring config %q not found by name or ID", identifier)
 				}
 			}
 		} else {

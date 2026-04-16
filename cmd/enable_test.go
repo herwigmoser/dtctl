@@ -57,4 +57,3 @@ func TestEnableAzureMonitoringFlags(t *testing.T) {
 		}
 	}
 }
-

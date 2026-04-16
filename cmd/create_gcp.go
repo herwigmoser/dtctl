@@ -161,7 +161,7 @@ Examples:
 		if err != nil {
 			return err
 		}
-credential.Enabled = false // Created in disabled state; use 'dtctl enable gcp monitoring' to enable
+		credential.Enabled = false // Created in disabled state; use 'dtctl enable gcp monitoring' to enable
 
 		locations, err := gcpmonitoringconfig.ParseOrDefaultLocations(createGCPMonitoringConfigLocationFiltering, monitoringHandler)
 		if err != nil {
