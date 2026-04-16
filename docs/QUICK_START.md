@@ -24,13 +24,12 @@ This guide provides practical examples for using dtctl to manage your Dynatrace 
 13. [Davis AI](#davis-ai)
 14. [Live Debugger](#live-debugger)
 15. [Extensions 2.0](#extensions-20)
-16. [Hub Catalog](#hub-catalog)
-17. [Output Formats](#output-formats)
-18. [Azure Monitoring](#azure-monitoring)
-19. [GCP Monitoring (Preview)](#gcp-monitoring-preview)
-20. [AI Agent Skills](#ai-agent-skills)
-21. [Tips & Tricks](#tips--tricks)
-22. [Troubleshooting](#troubleshooting)
+16. [Output Formats](#output-formats)
+17. [Azure Monitoring](#azure-monitoring)
+18. [GCP Monitoring (Preview)](#gcp-monitoring-preview)
+19. [AI Agent Skills](#ai-agent-skills)
+20. [Tips & Tricks](#tips--tricks)
+21. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -54,20 +53,9 @@ dtctl doctor
 ```
 
 To log out:
-
 ```bash
 dtctl auth logout
 ```
-
-**Headless environments (CI/CD, containers, WSL):** If no OS keyring is available, set `DTCTL_TOKEN_STORAGE=file` to store OAuth tokens as local files instead (protected by filesystem permissions):
-
-```bash
-export DTCTL_TOKEN_STORAGE=file
-dtctl auth login --context my-env --environment "https://abc12345.apps.dynatrace.com"
-# Tokens stored in ~/.local/share/dtctl/oauth-tokens/ (0600 permissions)
-```
-
-See [File-Based Token Storage](#file-based-token-storage) in Troubleshooting for details.
 
 #### Option 2: Token-based Authentication
 
@@ -90,7 +78,6 @@ dtctl config view
 **Creating a Platform Token:**
 
 To create a platform token in Dynatrace:
-
 1. Navigate to **Identity & Access Management > Access Tokens**
 2. Select **Generate new token** and choose **Platform token**
 3. Give it a descriptive name (e.g., "dtctl-token")
@@ -202,17 +189,16 @@ Config files support `${VAR_NAME}` syntax for environment variables:
 contexts:
   - name: ci
     context:
-      environment: ${DT_ENVIRONMENT_URL} # Expanded from env var
+      environment: ${DT_ENVIRONMENT_URL}  # Expanded from env var
       token-ref: ci-token
 tokens:
   - name: ci-token
-    token: ${DT_API_TOKEN} # Expanded from env var
+    token: ${DT_API_TOKEN}  # Expanded from env var
 ```
 
 This allows teams to commit `.dtctl.yaml` files to repositories **without secrets**, while each developer or CI system provides tokens via environment variables.
 
 **Search Order:**
-
 1. `--config` flag (explicit path)
 2. `.dtctl.yaml` in current directory or any parent directory (walks up to root)
 3. Global config (`~/.config/dtctl/config`)
@@ -234,11 +220,11 @@ dtctl --config ~/.config/dtctl/config get workflows
 
 Safety levels provide **client-side** protection against accidental destructive operations:
 
-| Level                      | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `readonly`                 | No modifications allowed                 |
-| `readwrite-mine`           | Modify own resources only                |
-| `readwrite-all`            | Modify all resources (default)           |
+| Level | Description |
+|-------|-------------|
+| `readonly` | No modifications allowed |
+| `readwrite-mine` | Modify own resources only |
+| `readwrite-all` | Modify all resources (default) |
 | `dangerously-unrestricted` | All operations including bucket deletion |
 
 ```bash
@@ -567,7 +553,6 @@ dtctl get workflows --watch --watch-only
 ```
 
 **Watch mode features:**
-
 - `+` (green) prefix for newly added workflows
 - `~` (yellow) prefix for modified workflows
 - `-` (red) prefix for deleted workflows
@@ -680,12 +665,10 @@ dtctl apply -f dashboard.yaml
 ```
 
 **When to use which:**
-
 - **`create`**: Use when you want to create a new resource. Fails if the ID already exists.
 - **`apply`**: Use for declarative management. Creates new resources or updates existing ones based on the ID in the file.
 
 Both commands validate the document structure and warn about issues:
-
 ```bash
 # If structure is wrong, you'll see warnings:
 # Warning: dashboard content has no 'tiles' field - dashboard may be empty
@@ -778,7 +761,6 @@ dtctl restore notebook "Weekly Analysis" 3 --force
 ```
 
 **Notes:**
-
 - Snapshots are created when documents are updated with the `create-snapshot` option
 - Maximum 50 snapshots per document (oldest auto-deleted when exceeded)
 - Snapshots auto-delete after 30 days
@@ -847,7 +829,6 @@ dtctl get trash -o yaml
 ```
 
 **Example output:**
-
 ```
 ID                                    TYPE        NAME                DELETED BY    DELETED AT           EXPIRES IN
 abc123-def456-ghi789-jkl012-mno345    dashboard   Prod Overview       john.doe      2024-01-15 10:30:00  29 days
@@ -894,7 +875,6 @@ dtctl delete trash abc-123 def-456 --permanent -y
 ```
 
 **Notes:**
-
 - Documents remain in trash for **30 days** before automatic permanent deletion
 - You can only restore documents that haven't expired yet
 - Trash operations require appropriate permissions (document owner or admin)
@@ -1031,13 +1011,12 @@ cat query.dql | dtctl query -o json
 
 #### Quick Reference: PowerShell vs Bash
 
-| Shell          | Heredoc Syntax | Example                                             |
-| -------------- | -------------- | --------------------------------------------------- |
-| **Bash/Zsh**   | `<<'EOF'`      | `dtctl query -f - <<'EOF'`<br>`fetch logs`<br>`EOF` |
-| **PowerShell** | `@'...'@`      | `dtctl query -f - @'`<br>`fetch logs`<br>`'@`       |
+| Shell | Heredoc Syntax | Example |
+|-------|----------------|---------|
+| **Bash/Zsh** | `<<'EOF'` | `dtctl query -f - <<'EOF'`<br>`fetch logs`<br>`EOF` |
+| **PowerShell** | `@'...'@` | `dtctl query -f - @'`<br>`fetch logs`<br>`'@` |
 
 **Why This Matters:**
-
 - DQL requires double quotes for strings (e.g., `"custom-logs"`, `"ERROR"`, `"api"`)
 - PowerShell's quote parsing can strip or convert these quotes
 - Using `-f -` (stdin) with here-strings bypasses shell quote parsing entirely
@@ -1078,7 +1057,6 @@ fetch logs
 ```
 
 **Template syntax:**
-
 - `{{.variable}}` - Reference a variable
 - `{{.variable | default "value"}}` - Provide default value
 
@@ -1131,13 +1109,11 @@ dtctl query "fetch logs | filter status='ERROR'" \
 ```
 
 **Query Limit Parameters:**
-
 - `--max-result-records`: Maximum number of result records to return (default: 1000)
 - `--max-result-bytes`: Maximum result size in bytes (default: varies by environment)
 - `--default-scan-limit-gbytes`: Scan limit in gigabytes (default: varies by environment)
 
 **Query Execution Parameters:**
-
 - `--default-sampling-ratio`: Sampling ratio for query results (normalized to power of 10 ≤ 100000)
 - `--fetch-timeout-seconds`: Time limit for fetching data in seconds
 - `--enable-preview`: Request preview results if available within timeout
@@ -1145,17 +1121,14 @@ dtctl query "fetch logs | filter status='ERROR'" \
 - `--include-types`: Include type information in query results
 
 **Timeframe Parameters:**
-
 - `--default-timeframe-start`: Query timeframe start timestamp (ISO-8601/RFC3339, e.g., '2022-04-20T12:10:04.123Z')
 - `--default-timeframe-end`: Query timeframe end timestamp (ISO-8601/RFC3339, e.g., '2022-04-20T13:10:04.123Z')
 
 **Localization Parameters:**
-
 - `--locale`: Query locale (e.g., 'en_US', 'de_DE')
 - `--timezone`: Query timezone (e.g., 'UTC', 'Europe/Paris', 'America/New_York')
 
 **Metadata Parameters:**
-
 - `--metadata`, `-M`: Include query execution metadata in output. Use bare `--metadata` for all fields, or select specific fields with `--metadata=field1,field2`. Valid fields: `analysisTimeframe`, `canonicalQuery`, `contributions`, `dqlVersion`, `executionTimeMilliseconds`, `locale`, `query`, `queryId`, `sampled`, `scannedBytes`, `scannedDataPoints`, `scannedRecords`, `timezone`
 - `--include-contributions`: Include bucket contribution details in metadata (requires API support)
 
@@ -1194,7 +1167,6 @@ dtctl query "fetch logs" \
 ```
 
 **Tip:** Use CSV output with increased limits for:
-
 - Exporting data for analysis in Excel or Google Sheets
 - Creating backups of log data
 - Feeding data into external analysis tools
@@ -1242,14 +1214,12 @@ dtctl query "fetch logs" -o csv 2>/dev/null > clean_data.csv
 ```
 
 **Common warnings:**
-
 - **SCAN_LIMIT_GBYTES**: Query stopped after scanning the default limit. Use `--default-scan-limit-gbytes` to adjust.
 - **RESULT_TRUNCATED**: Results exceeded the limit. Use `--max-result-records` to increase.
 
 ### Query Verification
 
 Verify DQL query syntax without executing it. This is useful for:
-
 - Testing queries in CI/CD pipelines
 - Pre-commit hooks to validate query files
 - Checking query correctness before execution
@@ -1294,12 +1264,12 @@ dtctl verify query -f query.dql --fail-on-warn
 
 The `verify` command returns different exit codes based on the result:
 
-| Exit Code | Meaning                                                            |
-| --------- | ------------------------------------------------------------------ |
-| 0         | Query is valid                                                     |
-| 1         | Query is invalid or has errors (or warnings with `--fail-on-warn`) |
-| 2         | Authentication/permission error                                    |
-| 3         | Network/server error                                               |
+| Exit Code | Meaning |
+|-----------|---------|
+| 0 | Query is valid |
+| 1 | Query is invalid or has errors (or warnings with `--fail-on-warn`) |
+| 2 | Authentication/permission error |
+| 3 | Network/server error |
 
 ```bash
 # Check exit code in scripts
@@ -1668,7 +1638,6 @@ dtctl create lookup -f data.tsv \
 ```
 
 **Parse Pattern Syntax:**
-
 - `LD:columnName` - Define a column
 - `','` - Comma separator (single quotes required)
 - `'\t'` - Tab separator
@@ -1754,7 +1723,7 @@ dtctl create lookup -f error_codes.csv \
 dtctl query "
 fetch logs
 | filter status = 'ERROR'
-| lookup [load '/lookups/monitoring/error_codes'],
+| lookup [load '/lookups/monitoring/error_codes'], 
   sourceField:error_code, lookupField:code
 | fields timestamp, error_code, message, severity, documentation_url
 | limit 50
@@ -1785,7 +1754,7 @@ dtctl create lookup -f ip_locations.csv \
 dtctl query "
 fetch logs
 | filter log.source = 'nginx'
-| lookup [load '/lookups/infrastructure/ip_locations'],
+| lookup [load '/lookups/infrastructure/ip_locations'], 
   sourceField:client_ip, lookupField:ip_address
 | summarize request_count=count(), by:{city, country, datacenter}
 | sort request_count desc
@@ -1816,7 +1785,7 @@ dtctl create lookup -f service_owners.csv \
 dtctl query "
 fetch logs
 | filter status = 'ERROR'
-| lookup [load '/lookups/services/ownership'],
+| lookup [load '/lookups/services/ownership'], 
   sourceField:service, lookupField:service_id
 | summarize error_count=count(), by:{team, team_email, slack_channel}
 | sort error_count desc
@@ -1848,8 +1817,8 @@ dtctl create lookup -f country_codes.csv \
 dtctl query "
 fetch logs
 | filter log.source = 'analytics'
-| lookup [load '/lookups/reference/countries'],
-  sourceField:country_code, lookupField:code,
+| lookup [load '/lookups/reference/countries'], 
+  sourceField:country_code, lookupField:code, 
   fields:{name, continent, currency}
 | summarize users=countDistinct(user_id), by:{name, continent}
 | sort users desc
@@ -1869,7 +1838,6 @@ dtctl delete lookup /lookups/staging/test_data -y
 ### Path Requirements
 
 Lookup table paths must follow these rules:
-
 - Must start with `/lookups/`
 - Only alphanumeric characters, hyphens (`-`), underscores (`_`), dots (`.`), and slashes (`/`)
 - Must end with an alphanumeric character
@@ -1877,13 +1845,11 @@ Lookup table paths must follow these rules:
 - At least 2 slashes (e.g., `/lookups/category/name`)
 
 **Good paths:**
-
 - `/lookups/production/error_codes`
 - `/lookups/infrastructure/host-locations`
 - `/lookups/reference/country.codes`
 
 **Invalid paths:**
-
 - `/data/lookup` - Must start with `/lookups/`
 - `/lookups/test/` - Cannot end with slash
 - `/lookups/data@prod` - Invalid character `@`
@@ -1892,7 +1858,6 @@ Lookup table paths must follow these rules:
 ### Tips & Best Practices
 
 **1. Organize with meaningful paths:**
-
 ```bash
 /lookups/production/...      # Production data
 /lookups/staging/...         # Staging/test data
@@ -1902,7 +1867,6 @@ Lookup table paths must follow these rules:
 ```
 
 **2. Use descriptive display names and descriptions:**
-
 ```bash
 dtctl create lookup -f data.csv \
   --path /lookups/prod/error_codes \
@@ -1912,7 +1876,6 @@ dtctl create lookup -f data.csv \
 ```
 
 **3. Export for backup:**
-
 ```bash
 # Export lookup metadata and data
 dtctl get lookup /lookups/production/error_codes -o yaml > backup.yaml
@@ -1922,7 +1885,6 @@ dtctl get lookups -o csv > lookup_inventory.csv
 ```
 
 **4. Version your source CSV files:**
-
 ```bash
 # Keep CSV files in version control
 git add lookups/error_codes.csv
@@ -1936,7 +1898,6 @@ dtctl create lookup -f lookups/error_codes.csv \
 ```
 
 **5. Test before production:**
-
 ```bash
 # Upload to staging first
 dtctl create lookup -f new_data.csv \
@@ -2015,7 +1976,6 @@ dtctl get settings-schemas -o json
 ```
 
 **Common OpenPipeline Schemas:**
-
 - `builtin:openpipeline.logs.pipelines` - Log processing pipelines
 - `builtin:openpipeline.logs.ingest-sources` - Log ingest sources
 - `builtin:openpipeline.logs.routing` - Log routing configuration
@@ -2188,7 +2148,6 @@ dtctl --context prod create settings -f pipeline.yaml \
 ```
 
 **Required Token Scopes:**
-
 - `settings:objects:read` - List and view settings objects (includes schema read access)
 - `settings:objects:write` - Create, update, and delete settings objects
 
@@ -2240,7 +2199,6 @@ dtctl describe function dynatrace.automations/execute-dql-query
 ```
 
 **Example output:**
-
 ```
 Function:     execute-dql-query
 Full Name:    dynatrace.automations/execute-dql-query
@@ -2291,7 +2249,6 @@ dtctl exec function dynatrace.automations/execute-dql-query \
 #### Tips for Working with Functions
 
 **Discover available functions:**
-
 ```bash
 # List all available functions
 dtctl get functions
@@ -2307,7 +2264,6 @@ dtctl get functions --app dynatrace.automations -o wide
 ```
 
 **Find function payloads:**
-
 ```bash
 # Method 1: Check the Dynatrace UI
 # Navigate to Apps → [App Name] → View function documentation
@@ -2378,7 +2334,6 @@ dtctl exec function dynatrace.abuseipdb/check-ip \
 ```
 
 **Required Token Scopes:**
-
 - `app-engine:apps:run` - Execute app functions
 
 See [TOKEN_SCOPES.md](TOKEN_SCOPES.md) for complete scope lists.
@@ -2407,7 +2362,6 @@ dtctl describe intent dynatrace.distributedtracing/view-trace
 ```
 
 **Example output:**
-
 ```
 Intent:       view-trace
 Full Name:    dynatrace.distributedtracing/view-trace
@@ -2478,7 +2432,6 @@ dtctl open intent dynatrace.distributedtracing/view-trace \
 #### Practical Use Cases
 
 **Use Case 1: Deep Linking from Alerts**
-
 ```bash
 # Extract trace ID from alert and open in Dynatrace
 TRACE_ID=$(extract_from_alert)
@@ -2487,7 +2440,6 @@ dtctl open intent dynatrace.distributedtracing/view-trace \
 ```
 
 **Use Case 2: Scripted Navigation**
-
 ```bash
 # Find which apps can handle this data, then open the best match
 dtctl find intents --data log_id=xyz789 -o json | \
@@ -2496,7 +2448,6 @@ dtctl find intents --data log_id=xyz789 -o json | \
 ```
 
 **Use Case 3: Generate Documentation**
-
 ```bash
 # Generate intent documentation for all apps
 dtctl get intents -o json | \
@@ -2504,7 +2455,6 @@ dtctl get intents -o json | \
 ```
 
 **Use Case 4: Integration with External Tools**
-
 ```bash
 # Generate intent URL from external system data
 TRACE_DATA=$(curl -s https://external-system/api/trace/123)
@@ -2514,7 +2464,6 @@ dtctl open intent dynatrace.distributedtracing/view-trace \
 ```
 
 **Required Token Scopes:**
-
 - `app-engine:apps:run` - Required for accessing app manifests and intent data
 
 ### Delete Apps
@@ -2642,12 +2591,12 @@ dtctl exec analyzer dt.statistics.GenericForecastAnalyzer \
 
 #### Common Analyzers
 
-| Analyzer                                                                  | Description                        |
-| ------------------------------------------------------------------------- | ---------------------------------- |
-| `dt.statistics.GenericForecastAnalyzer`                                   | Time series forecasting            |
-| `dt.statistics.ChangePointAnalyzer`                                       | Detect changes in time series      |
-| `dt.statistics.CorrelationAnalyzer`                                       | Find correlations between metrics  |
-| `dt.statistics.TimeSeriesCharacteristicAnalyzer`                          | Analyze time series properties     |
+| Analyzer | Description |
+|----------|-------------|
+| `dt.statistics.GenericForecastAnalyzer` | Time series forecasting |
+| `dt.statistics.ChangePointAnalyzer` | Detect changes in time series |
+| `dt.statistics.CorrelationAnalyzer` | Find correlations between metrics |
+| `dt.statistics.TimeSeriesCharacteristicAnalyzer` | Analyze time series properties |
 | `dt.statistics.anomaly_detection.StaticThresholdAnomalyDetectionAnalyzer` | Static threshold anomaly detection |
 
 ### Davis CoPilot
@@ -2773,7 +2722,6 @@ dtctl exec copilot document-search "kubernetes" --collections notebooks -o json
 ### Required Token Scopes
 
 For Davis AI features:
-
 - **Analyzers**: `davis:analyzers:read`, `davis:analyzers:execute`
 - **CoPilot** (all features): `davis-copilot:conversations:execute`
 
@@ -2792,7 +2740,6 @@ dtctl create azure connection --name "my-azure-connection" --type federatedIdent
 ```
 
 Command output prints dynamic values you need for Azure setup:
-
 - Issuer
 - Subject (dt:connection-id/...)
 - Audience
@@ -2827,15 +2774,28 @@ dtctl update azure connection --name "my-azure-connection" --directoryId "$TENAN
 
 Note: immediately after step 4, Entra propagation can take a short time. If you see AADSTS70025, retry step 5 after a few seconds.
 
-### 6) Create and verify Azure monitoring config
+### 6) Create Azure monitoring config (created as disabled)
 
 ```bash
-dtctl create azure monitoring --name "my-azure-connection" --credentials "my-azure-connection"
-dtctl get azure monitoring my-azure-connection
-dtctl describe azure monitoring my-azure-connection
+dtctl create azure monitoring --name "my-azure-monitoring" --credentials "my-azure-connection"
 ```
 
-### 7) Update Azure monitoring config (examples)
+### 7) Enable Azure monitoring config
+
+Enables the monitoring config and optionally updates the linked connection credentials in one step:
+
+```bash
+dtctl enable azure monitoring --name "my-azure-monitoring" --directoryId "$TENANT_ID" --applicationId "$CLIENT_ID"
+```
+
+Verify the config is now enabled:
+
+```bash
+dtctl get azure monitoring my-azure-monitoring
+dtctl describe azure monitoring my-azure-monitoring
+```
+
+### 8) Update Azure monitoring config (examples)
 
 Change location filtering to two regions:
 
@@ -2865,6 +2825,12 @@ dtctl create azure monitoring --name "my-azure-monitoring-explicit" \
 ## GCP Monitoring (Preview)
 
 This is the recommended onboarding flow for GCP with service account impersonation.
+
+> **Note:** The Dynatrace backend requires the GCP connection to have a service account
+> configured before a monitoring config can be created against it. This means the connection
+> must be updated with `--serviceAccountId` (step 3) **before** running `create gcp monitoring`
+> (step 4). The `enable` step then only needs to toggle the enabled state — no need to repeat
+> the service account.
 
 All GCP commands in this section are `Preview`.
 
@@ -2922,21 +2888,34 @@ Use the service account from step 2 and update connection:
 dtctl update gcp connection --name "my-gcp-connection" --serviceAccountId "${CUSTOMER_SA_EMAIL}"
 ```
 
-### 4) Create and verify GCP monitoring config
+### 4) Create GCP monitoring config (created as disabled)
 
 ```bash
 dtctl create gcp monitoring --name "my-gcp-monitoring" --credentials "my-gcp-connection"
+```
+
+### 5) Enable GCP monitoring config
+
+The connection credentials were already set in step 3, so no credential flags are needed here:
+
+```bash
+dtctl enable gcp monitoring --name "my-gcp-monitoring"
+```
+
+Verify the config is now enabled:
+
+```bash
 dtctl describe gcp monitoring my-gcp-monitoring
 ```
 
-### 5) Discover available locations and feature sets
+### 6) Discover available locations and feature sets
 
 ```bash
 dtctl get gcp monitoring-locations
 dtctl get gcp monitoring-feature-sets
 ```
 
-### 6) Update GCP monitoring config (examples)
+### 7) Update GCP monitoring config (examples)
 
 Change location filtering to two regions:
 
@@ -2961,7 +2940,7 @@ dtctl create gcp monitoring --name "my-gcp-monitoring-explicit" \
   --featureSets "compute_engine_essential,cloud_run_essential"
 ```
 
-### 7) Delete by name or ID
+### 8) Delete by name or ID
 
 ```bash
 dtctl delete gcp monitoring my-gcp-monitoring
@@ -3100,47 +3079,6 @@ value:
 
 ---
 
-## Hub Catalog
-
-Browse the Dynatrace Hub extension catalog to discover available extensions before installing them. All Hub commands are read-only.
-
-### Browse Hub Extensions
-
-```bash
-# List all available extensions in the Hub
-dtctl get hub-extensions
-
-# Filter by keyword (case-insensitive, matches name, ID, or description)
-dtctl get hub-extensions --filter kafka
-
-# Wide output (includes description column)
-dtctl get hub-extensions -o wide
-
-# Get a specific Hub extension by ID
-dtctl get hub-extensions com.dynatrace.extension.host-monitoring
-
-# Describe a Hub extension
-dtctl describe hub-extensions com.dynatrace.extension.host-monitoring
-
-# Output as JSON
-dtctl describe hub-extensions com.dynatrace.extension.host-monitoring -o json
-```
-
-### View Extension Releases
-
-```bash
-# List all releases for a Hub extension
-dtctl get hub-extension-releases com.dynatrace.extension.host-monitoring
-
-# Output as JSON or YAML
-dtctl get hub-extension-releases com.dynatrace.extension.host-monitoring -o json
-dtctl get hub-extension-releases com.dynatrace.extension.host-monitoring -o yaml
-```
-
-**Required Token Scopes:** The Hub catalog API uses the same `extensions:definitions:read` scope as the installed extensions API. See [TOKEN_SCOPES.md](TOKEN_SCOPES.md) for complete scope reference.
-
----
-
 ## Output Formats
 
 All `get` and `query` commands support multiple output formats.
@@ -3219,7 +3157,6 @@ dtctl query "fetch logs" --max-result-records 5000 -o csv > large_export.csv
 ```
 
 **CSV Features:**
-
 - Proper escaping for special characters (commas, quotes, newlines)
 - Alphabetically sorted columns for consistency
 - Handles missing values gracefully
@@ -3245,7 +3182,6 @@ dtctl get workflows --agent -o toon
 ```
 
 **TOON Features:**
-
 - ~40-60% fewer tokens than JSON for tabular data
 - Lossless round-trip fidelity with JSON data model
 - Available in agent mode via `-A -o toon`
@@ -3431,7 +3367,6 @@ dtctl delete notebook "Old Analysis"
 Enable tab completion for faster workflows:
 
 **Bash:**
-
 ```bash
 source <(dtctl completion bash)
 
@@ -3441,7 +3376,6 @@ dtctl completion bash | sudo tee /etc/bash_completion.d/dtctl > /dev/null
 ```
 
 **Zsh:**
-
 ```bash
 mkdir -p ~/.zsh/completions
 dtctl completion zsh > ~/.zsh/completions/_dtctl
@@ -3450,7 +3384,6 @@ rm -f ~/.zcompdump* && autoload -U compinit && compinit
 ```
 
 **Fish:**
-
 ```bash
 mkdir -p ~/.config/fish/completions
 dtctl completion fish > ~/.config/fish/completions/dtctl.fish
@@ -3479,19 +3412,16 @@ dtctl query -f ~/.local/share/dtctl/queries/errors-last-hour.dql
 **Note**: dtctl follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) and adapts to platform conventions:
 
 **Linux:**
-
 - Config: `$XDG_CONFIG_HOME/dtctl` (default: `~/.config/dtctl`)
 - Data: `$XDG_DATA_HOME/dtctl` (default: `~/.local/share/dtctl`)
 - Cache: `$XDG_CACHE_HOME/dtctl` (default: `~/.cache/dtctl`)
 
 **macOS:**
-
 - Config: `~/Library/Application Support/dtctl`
 - Data: `~/Library/Application Support/dtctl`
 - Cache: `~/Library/Caches/dtctl`
 
 **Windows:**
-
 - Config: `%LOCALAPPDATA%\dtctl`
 - Data: `%LOCALAPPDATA%\dtctl`
 - Cache: `%LOCALAPPDATA%\dtctl`
@@ -3667,7 +3597,6 @@ dtctl query "fetch logs" --max-result-records 5000 -o csv > logs.csv
 ```
 
 **Performance Tips:**
-
 - Use filters in your DQL query to reduce dataset size
 - Request only the columns you need
 - Consider time-based filtering for incremental exports
@@ -3685,7 +3614,7 @@ Before diving into manual troubleshooting, run the built-in health check:
 dtctl doctor
 ```
 
-This runs 8 sequential checks — version, config, context, URL validation, token storage, token, connectivity, and authentication — and reports pass/fail with actionable suggestions for each.
+This runs 6 sequential checks — version, config, context, token, connectivity, and authentication — and reports pass/fail with actionable suggestions for each.
 
 ### Understanding Error Messages
 
@@ -3725,7 +3654,7 @@ dtctl get workflows --debug
 #     User-Agent: dtctl/0.12.0
 #     Authorization: [REDACTED]
 #     ...
-#
+# 
 # ===> RESPONSE <===
 # STATUS: 200 OK
 # TIME: 234ms
@@ -3737,66 +3666,16 @@ dtctl get workflows --debug
 ```
 
 The `--debug` flag is equivalent to `-vv` and shows:
-
 - Full HTTP request URL and method
 - Request and response headers (auth tokens are always redacted)
 - Response body
 - Response time
 
 This is useful for:
-
 - Diagnosing API errors
 - Verifying request parameters
 - Checking response format
 - Troubleshooting performance issues
-
-### Keyring Issues on Linux/WSL
-
-If `dtctl doctor` shows a keyring warning or `dtctl auth login` fails with a keyring error, the persistent keyring collection may not exist yet. Run:
-
-```bash
-dtctl auth login --context my-env --environment "https://YOUR_ENV.apps.dynatrace.com"
-```
-
-dtctl will detect the missing collection and offer to create it automatically — you may be prompted for a password.
-
-If automatic creation fails:
-
-- Ensure a Secret Service provider is running: `gnome-keyring-daemon --start --components=secrets`
-- Or switch to token-based authentication (see Option 2 above)
-- To disable keyring entirely: `export DTCTL_DISABLE_KEYRING=1`
-
-### File-Based Token Storage
-
-For headless environments without an OS keyring (CI/CD, containers, WSL, remote SSH), dtctl supports file-based OAuth token storage as a fallback:
-
-```bash
-# Enable file-based storage
-export DTCTL_TOKEN_STORAGE=file
-
-# Then use OAuth login normally
-dtctl auth login --context my-env --environment "https://abc12345.apps.dynatrace.com"
-
-# Verify storage backend with doctor
-dtctl doctor
-# Token storage: [OK] file-based storage (DTCTL_TOKEN_STORAGE=file)
-```
-
-**How it works:**
-
-- Tokens are stored as JSON files under `$XDG_DATA_HOME/dtctl/oauth-tokens/` (typically `~/.local/share/dtctl/oauth-tokens/` on Linux, `~/Library/Application Support/dtctl/oauth-tokens/` on macOS)
-- Files are created with `0600` permissions (owner-only read/write)
-- The directory is created with `0700` permissions
-- Token refresh works identically to keyring storage
-
-**When to use:**
-
-- Docker containers or CI/CD pipelines where no Secret Service is running
-- WSL environments without `gnome-keyring-daemon`
-- Headless Linux servers (SSH sessions)
-- Any environment where `dtctl doctor` reports keyring unavailable
-
-**Security note:** File-based storage keeps tokens on disk in plain JSON (with filesystem permissions as the security boundary). This is comparable to how `kubectl` stores tokens in `~/.kube/config`. For higher security, prefer the OS keyring when available.
 
 ### "config file not found"
 
@@ -3813,13 +3692,11 @@ dtctl config set-credentials my-token --token "dt0s16.YOUR_TOKEN"
 ### "failed to execute workflow" or "failed to list workflows"
 
 Check:
-
 1. Your token has the correct permissions
 2. Your environment URL is correct
 3. You're using the right context
 
 Enable debug mode to see detailed HTTP interactions:
-
 ```bash
 dtctl get workflows --debug
 ```
@@ -3827,7 +3704,6 @@ dtctl get workflows --debug
 ### Platform Token Scopes
 
 Your platform token needs appropriate scopes for the resources you want to manage. See [TOKEN_SCOPES.md](TOKEN_SCOPES.md) for:
-
 - Complete scope lists for each safety level (copy-pasteable)
 - Detailed breakdown by resource type
 - Token creation instructions
@@ -3837,7 +3713,6 @@ Your platform token needs appropriate scopes for the resources you want to manag
 If you're using dtctl through an AI coding assistant (like Claude Code, GitHub Copilot, Cursor, OpenClaw, etc.), dtctl automatically detects this and includes it in the User-Agent header for telemetry purposes. This helps improve the CLI experience for AI-assisted workflows.
 
 The detection is automatic and doesn't affect functionality. Supported AI agents:
-
 - Claude Code (`CLAUDECODE` env var)
 - OpenCode (`OPENCODE` env var)
 - GitHub Copilot (`GITHUB_COPILOT` env var)
@@ -3887,7 +3762,6 @@ dtctl get workflows -vv
 ```
 
 The debug output includes:
-
 - HTTP method and URL
 - Request/response headers (sensitive headers are redacted)
 - Response body and status
