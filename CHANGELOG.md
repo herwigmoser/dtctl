@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **`offline_access` OAuth scope** — all four safety levels now request the OIDC `offline_access` scope, causing the token endpoint to return a refresh token; this enables automatic access-token refresh on every subsequent command without re-running `dtctl auth login`
+- **`auth status` command** — new `dtctl auth status` subcommand reports OAuth session health for the current context: access token validity and time-to-expiry, refresh token presence and expiry; supports `-o json/yaml` for scripting
+- **Doctor "OAuth session" check** — `dtctl doctor` now includes an OAuth session row reporting access token expiry and whether a refresh token is present; row is omitted for platform-token contexts
+- **Improved keyring compact-storage fallback** — when a keyring backend rejects the full token payload for being too large, dtctl now tries a medium-compact form first (drops access/ID token JWTs but keeps scope and expiry metadata) before falling back to the minimal form (refresh token + name only); `auth status` remains informative in both compact cases
 - **`enable gcp|azure monitoring` command** — new `dtctl enable` verb that completes cloud monitoring onboarding in one step: optionally updates the linked connection credentials (service account for GCP; directory/application ID for Azure) and enables the monitoring config; `--serviceAccountId`, `--directoryId`, `--applicationId` are all optional — if omitted, only the enabled state is toggled; supports `--dry-run`
 - **Cloud monitoring configs created as disabled** — `dtctl create gcp monitoring` and `dtctl create azure monitoring` now create configs in a disabled state (`enabled: false`); use `dtctl enable gcp|azure monitoring` to enable
 
