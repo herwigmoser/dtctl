@@ -339,7 +339,7 @@ func TestCreateEnvironmentShare(t *testing.T) {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Fatalf("decode body: %v", err)
 		}
-		if body.DocumentID != "doc-1" || len(body.Access) != 1 || body.Access[0] != "read" {
+		if body.DocumentID != "doc-1" || body.Access != "read" {
 			t.Errorf("unexpected body: %+v", body)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -348,7 +348,7 @@ func TestCreateEnvironmentShare(t *testing.T) {
 	h, cleanup := newDocTestHandler(t, mux)
 	defer cleanup()
 
-	got, err := h.CreateEnvironmentShare(CreateEnvironmentShareRequest{DocumentID: "doc-1", Access: []string{"read"}})
+	got, err := h.CreateEnvironmentShare(CreateEnvironmentShareRequest{DocumentID: "doc-1", Access: "read"})
 	if err != nil {
 		t.Fatalf("CreateEnvironmentShare: %v", err)
 	}

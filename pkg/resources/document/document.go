@@ -809,6 +809,9 @@ type EnvironmentShare struct {
 	ID         string   `json:"id" table:"ID"`
 	DocumentID string   `json:"documentId" table:"DOCUMENT_ID"`
 	Access     []string `json:"access" table:"ACCESS"`
+	// ClaimCount > 0 means at least one user has claimed this share. A created-but-unclaimed
+	// share exists on the server but doesn't flip the document's isPrivate flag.
+	ClaimCount int `json:"claimCount" table:"CLAIM_COUNT"`
 }
 
 // HasAccess reports whether the share grants the given access level.
@@ -849,10 +852,12 @@ type EnvironmentShareList struct {
 }
 
 // CreateEnvironmentShareRequest contains the data needed to create an environment share.
-// Access is sent as an array to match the server schema.
+// The Document Service API schema is asymmetric: GET returns access as an array
+// (e.g. ["read"] or ["read","write"]), but POST accepts a single level string
+// ("read" or "read-write") and the server expands it server-side into the array.
 type CreateEnvironmentShareRequest struct {
-	DocumentID string   `json:"documentId"`
-	Access     []string `json:"access"` // ["read"] or ["read","write"]
+	DocumentID string `json:"documentId"`
+	Access     string `json:"access"` // "read" or "read-write"
 }
 
 // CreateEnvironmentShare creates an environment-wide share for a document
@@ -932,8 +937,16 @@ func (h *Handler) DeleteEnvironmentShare(shareID string) error {
 
 // EnsureEnvironmentShare idempotently ensures the document has an environment share at the given access level.
 // - If no share exists, creates one.
-// - If a share already grants the requested level, no-op.
+// - If a share exists and grants the requested level, no-op.
 // - If a share exists but grants a different level, deletes it and creates a new one.
+//
+// Note on the `isPrivate` flag: creating an environment share does NOT by itself flip
+// the document's `isPrivate: false` flag. The flag reflects whether some OTHER user
+// has *claimed* the share (there's a server-side restriction: the owner cannot claim
+// their own document). In practice the share is still discoverable via
+// /environment-shares?filter=documentId=='<id>' and any user in the environment can
+// claim it; the owner's own view keeps showing isPrivate=true until someone else does.
+//
 // Returns the current (or newly-created) share.
 func (h *Handler) EnsureEnvironmentShare(documentID, access string) (*EnvironmentShare, error) {
 	existing, err := h.ListEnvironmentShares(documentID)
@@ -951,7 +964,7 @@ func (h *Handler) EnsureEnvironmentShare(documentID, access string) (*Environmen
 	}
 	return h.CreateEnvironmentShare(CreateEnvironmentShareRequest{
 		DocumentID: documentID,
-		Access:     accessToLevels(access),
+		Access:     access,
 	})
 }
 
