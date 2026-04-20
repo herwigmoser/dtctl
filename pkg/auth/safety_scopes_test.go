@@ -25,6 +25,7 @@ func TestGetScopesForSafetyLevel(t *testing.T) {
 				"automation:workflows:read",
 				"storage:logs:read",
 				"storage:buckets:read",
+				"hub:catalog:read",
 			},
 			mustNotInclude: []string{
 				"document:documents:write",
@@ -35,6 +36,7 @@ func TestGetScopesForSafetyLevel(t *testing.T) {
 				"storage:bucket-definitions:delete",
 				"storage:bucket-definitions:truncate",
 				"dev-obs:breakpoints:set",
+				"extensions:definitions:write",
 			},
 			minScopeCount: 36, // readonly has many read scopes
 		},
@@ -55,6 +57,7 @@ func TestGetScopesForSafetyLevel(t *testing.T) {
 				"extensions:definitions:write",
 				"email:emails:send",
 				"dev-obs:breakpoints:set",
+				"hub:catalog:read",
 			},
 			mustNotInclude: []string{
 				"storage:logs:write",
@@ -85,6 +88,7 @@ func TestGetScopesForSafetyLevel(t *testing.T) {
 				"extensions:definitions:write",
 				"email:emails:send",
 				"dev-obs:breakpoints:set",
+				"hub:catalog:read",
 			},
 			mustNotInclude: []string{
 				"storage:bucket-definitions:delete",
@@ -113,6 +117,8 @@ func TestGetScopesForSafetyLevel(t *testing.T) {
 				"storage:records:delete",
 				"email:emails:send",
 				"dev-obs:breakpoints:set",
+				"hub:catalog:read",
+				"extensions:definitions:write",
 			},
 			mustNotInclude: []string{},
 			minScopeCount:  73,

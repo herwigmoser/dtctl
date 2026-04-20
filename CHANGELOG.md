@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **App function custom error detection** — `dtctl exec function` now detects the Dynatrace app-function error envelope (`{"error": "message", "data": ...}`) on HTTP 200 responses and surfaces the error message with a non-zero exit code instead of silently returning success
+- **OAuth scopes for Hub catalog and extension definitions** — added `hub:catalog:read` scope to all safety levels (readonly and above) and `extensions:definitions:write` scope to readwrite-all and dangerously-unrestricted levels; fixes #166
 - **`offline_access` OAuth scope** — all four safety levels now request the OIDC `offline_access` scope, causing the token endpoint to return a refresh token; this enables automatic access-token refresh on every subsequent command without re-running `dtctl auth login`
 - **`auth status` command** — new `dtctl auth status` subcommand reports OAuth session health for the current context: access token validity and time-to-expiry, refresh token presence and expiry; supports `-o json/yaml` for scripting
 - **Doctor "OAuth session" check** — `dtctl doctor` now includes an OAuth session row reporting access token expiry and whether a refresh token is present; row is omitted for platform-token contexts
