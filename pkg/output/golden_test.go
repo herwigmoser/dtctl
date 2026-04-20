@@ -333,6 +333,32 @@ func dqlTimeseriesFixture() []map[string]interface{} {
 	}
 }
 
+// dqlMultiSeriesTimeseriesFixture returns two records with different dimension labels,
+// producing a multi-series chart that exercises the PlotMany code path.
+// interval must be a string (nanoseconds) to match the real DQL API response format.
+func dqlMultiSeriesTimeseriesFixture() []map[string]interface{} {
+	return []map[string]interface{}{
+		{
+			"timeframe": map[string]interface{}{
+				"start": "2025-03-15T09:00:00Z",
+				"end":   "2025-03-15T10:00:00Z",
+			},
+			"interval":               "300000000000",
+			"dt.entity.host":         "HOST-A",
+			"avg(dt.host.cpu.usage)": []interface{}{12.5, 15.3, 18.7, 22.1, 35.6, 42.3, 38.9, 25.4, 19.8, 14.2, 11.1, 13.7},
+		},
+		{
+			"timeframe": map[string]interface{}{
+				"start": "2025-03-15T09:00:00Z",
+				"end":   "2025-03-15T10:00:00Z",
+			},
+			"interval":               "300000000000",
+			"dt.entity.host":         "HOST-B",
+			"avg(dt.host.cpu.usage)": []interface{}{55.0, 58.2, 61.4, 59.9, 57.3, 62.1, 65.8, 63.0, 60.5, 58.8, 56.2, 54.7},
+		},
+	}
+}
+
 func extensionFixtures() []extension.Extension {
 	return []extension.Extension{
 		{
@@ -1871,6 +1897,25 @@ func TestGolden_QueryDQL_Chart(t *testing.T) {
 	}
 	// Strip ANSI for deterministic comparison
 	assertGolden(t, "query/dql-chart", stripANSI(buf.String()))
+}
+
+// TestGolden_QueryDQL_Chart_MultiSeries exercises the PlotMany code path (2+ series).
+// Previously, omitting SeriesColors when color was disabled caused a panic inside
+// asciigraph.addLegends (legend.go:31), which accesses SeriesColors[i] for each legend.
+func TestGolden_QueryDQL_Chart_MultiSeries(t *testing.T) {
+	records := dqlMultiSeriesTimeseriesFixture()
+
+	var buf bytes.Buffer
+	printer := NewPrinterWithOpts(PrinterOptions{
+		Format: "chart",
+		Writer: &buf,
+		Width:  80,
+		Height: 15,
+	})
+	if err := printer.PrintList(records); err != nil {
+		t.Fatalf("PrintList failed: %v", err)
+	}
+	assertGolden(t, "query/dql-chart-multi-series", stripANSI(buf.String()))
 }
 
 func TestGolden_QueryDQL_Sparkline(t *testing.T) {
