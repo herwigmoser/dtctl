@@ -163,7 +163,7 @@ Examples:
 				return nil
 			}
 			enrichAgent(printer, "describe", "extension")
-			return printer.Print(groups)
+			return printer.PrintList(groups.Items)
 		}
 
 		// Get detailed information for the target version

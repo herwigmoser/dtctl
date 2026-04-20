@@ -85,7 +85,9 @@ func runUploadExtension(file string) error {
 		return err
 	}
 
-	output.PrintSuccess("Extension %q version %s uploaded successfully", result.ExtensionName, result.Version)
+	output.PrintSuccess("Extension uploaded")
+	output.PrintInfo("  Name:    %s", result.ExtensionName)
+	output.PrintInfo("  Version: %s", result.Version)
 	return nil
 }
 
@@ -110,7 +112,9 @@ func runInstallHubExtension(extensionID, version string) error {
 		return err
 	}
 
-	output.PrintSuccess("Hub extension %q version %s installed successfully", result.ExtensionName, result.Version)
+	output.PrintSuccess("Hub extension installed")
+	output.PrintInfo("  Name:    %s", result.ExtensionName)
+	output.PrintInfo("  Version: %s", result.Version)
 	return nil
 }
 
