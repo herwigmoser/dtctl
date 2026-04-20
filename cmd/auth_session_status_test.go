@@ -233,6 +233,78 @@ func TestDoctor_OAuthSessionRow_FailWhenSessionError(t *testing.T) {
 	}
 }
 
+func TestAccessTokenSummary(t *testing.T) {
+	future := time.Now().Add(30 * time.Minute)
+	past := time.Now().Add(-5 * time.Minute)
+
+	cases := []struct {
+		name    string
+		status  *SessionStatus
+		wantSub string // substring that must appear in the summary
+		wantNot string // substring that must NOT appear (optional)
+	}{
+		{
+			name:    "no tokens at all",
+			status:  &SessionStatus{},
+			wantSub: "not present",
+		},
+		{
+			name: "cached access token, valid",
+			status: &SessionStatus{
+				AccessTokenPresent:   true,
+				AccessTokenExpiresAt: &future,
+				RefreshTokenPresent:  true,
+			},
+			wantSub: "valid for",
+		},
+		{
+			name: "cached access token, expired with refresh",
+			status: &SessionStatus{
+				AccessTokenPresent:   true,
+				AccessTokenExpiresAt: &past,
+				RefreshTokenPresent:  true,
+			},
+			wantSub: "expired",
+			wantNot: "valid for",
+		},
+		{
+			// Regression: medium-compact keyring storage drops the access-token JWT
+			// but keeps ExpiresAt. The summary must not claim "valid for X" because
+			// accessTokenPresent is false in the structured (JSON) output — the two
+			// would contradict each other.
+			name: "access token not cached locally, expiry known, refresh present",
+			status: &SessionStatus{
+				AccessTokenPresent:   false,
+				AccessTokenExpiresAt: &future,
+				RefreshTokenPresent:  true,
+			},
+			wantSub: "not cached locally",
+			wantNot: "valid for",
+		},
+		{
+			name: "access token not cached, no expiry info, refresh present",
+			status: &SessionStatus{
+				AccessTokenPresent:  false,
+				RefreshTokenPresent: true,
+			},
+			wantSub: "not cached locally",
+			wantNot: "valid",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := accessTokenSummary(tc.status)
+			if !strings.Contains(got, tc.wantSub) {
+				t.Errorf("expected summary to contain %q, got %q", tc.wantSub, got)
+			}
+			if tc.wantNot != "" && strings.Contains(got, tc.wantNot) {
+				t.Errorf("expected summary NOT to contain %q, got %q", tc.wantNot, got)
+			}
+		})
+	}
+}
+
 func TestPrintSessionStatusTable_DoesNotPanic(t *testing.T) {
 	cases := []*SessionStatus{
 		{Context: "c", Environment: "https://e", IsOAuth: false},

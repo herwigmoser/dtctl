@@ -273,7 +273,20 @@ func accessTokenSummary(status *SessionStatus) string {
 		return "not present — run 'dtctl auth login'"
 	}
 
-	// Determine expiry, regardless of whether the token is cached locally.
+	// Access token JWT is not cached locally (e.g. medium-compact keyring storage
+	// dropped it to fit the OS keyring size limit). The refresh token — confirmed
+	// present by the guard above — will be used to mint a new access token on the
+	// next API call. Don't claim "valid" here: accessTokenPresent is false in the
+	// structured output, so the two would contradict each other.
+	if !status.AccessTokenPresent {
+		if status.AccessTokenExpiresAt != nil {
+			return fmt.Sprintf("not cached locally (previous expiry %s; will refresh on next call)",
+				status.AccessTokenExpiresAt.Format(time.RFC3339))
+		}
+		return "not cached locally (will refresh on next call)"
+	}
+
+	// Access token is cached locally — report expiry when we know it.
 	if status.AccessTokenExpiresAt != nil {
 		remaining := status.AccessTokenExpiresAt.Sub(now).Round(time.Second)
 		if remaining > 0 {
@@ -287,7 +300,7 @@ func accessTokenSummary(status *SessionStatus) string {
 			status.AccessTokenExpiresAt.Format(time.RFC3339))
 	}
 
-	// No expiry info — but if a refresh token exists the session is still healthy.
+	// Access token is cached but we don't know when it expires.
 	if status.RefreshTokenPresent {
 		return "valid"
 	}
