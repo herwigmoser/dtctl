@@ -35,7 +35,7 @@ func (e *DQLExecutor) WithTokenRefresher(refresher func() (string, error)) *DQLE
 // pollRequestTimeoutMs is the server-side hold time per poll HTTP round trip in milliseconds.
 // The server will return after this duration even if the query is still running, allowing
 // the client to loop and re-poll. Must stay in sync with the execute request timeout.
-const pollRequestTimeoutMs = 1000
+const pollRequestTimeoutMs = 5000
 
 // DecodeMode controls snapshot payload decoding behavior.
 type DecodeMode int
