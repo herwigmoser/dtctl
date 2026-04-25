@@ -700,6 +700,8 @@ func (e *DQLExecutor) pollForResults(requestToken string) (DQLQueryResponse, err
 }
 
 // pollForResultsWithOptions polls the query:poll endpoint until the query completes with options
+//
+//nolint:unused // Reserved for future polling features
 func (e *DQLExecutor) pollForResultsWithOptions(requestToken string, opts DQLExecuteOptions) (DQLQueryResponse, error) {
 	return e.pollForResultsWithContext(context.Background(), requestToken, opts)
 }

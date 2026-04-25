@@ -74,5 +74,5 @@ type recordingPrinter struct {
 	onPrint func(data interface{}) error
 }
 
-func (r *recordingPrinter) Print(data interface{}) error      { return r.onPrint(data) }
-func (r *recordingPrinter) PrintList(data interface{}) error  { return nil }
+func (r *recordingPrinter) Print(data interface{}) error     { return r.onPrint(data) }
+func (r *recordingPrinter) PrintList(data interface{}) error { return nil }
