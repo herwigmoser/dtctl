@@ -365,8 +365,10 @@ func (e *DQLExecutor) ExecuteQueryWithContext(ctx context.Context, query string,
 
 		pollResult, pollErr := e.pollForResultsWithContext(pollCtx, result.RequestToken, opts)
 		if pollErr != nil {
-			// If context was cancelled, send a best-effort cancel to the backend
-			if pollCtx.Err() != nil {
+			// If the caller's context was cancelled (e.g. SIGINT), send a best-effort
+			// cancel to the backend. The internal poll deadline (pollCtx) is treated
+			// as a normal error so the caller sees the timeout.
+			if ctx.Err() != nil {
 				e.CancelQuery(result.RequestToken)
 				return nil, nil
 			}

@@ -63,6 +63,7 @@ func (p *LivePrinter) RunLive(ctx context.Context, fetcher DataFetcher) error {
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(sigCh)
 
 	// Set up resize signal handling for fullscreen mode (Unix only)
 	p.setupResizeSignal()
