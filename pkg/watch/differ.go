@@ -132,7 +132,11 @@ func extractID(item interface{}) string {
 func contentHash(item interface{}) string {
 	b, err := json.Marshal(item)
 	if err != nil {
-		return fmt.Sprintf("%p", item)
+		// Stable sentinel: all unmarshalable items share this key and collide,
+		// which is fine — they're equally indistinguishable to the user.
+		// A pointer address (%p) would change across polls, making every such
+		// item appear as a new addition on every tick.
+		return "unmarshalable"
 	}
 	sum := sha1.Sum(b)
 	return hex.EncodeToString(sum[:])

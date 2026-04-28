@@ -199,6 +199,8 @@ func isNetworkError(err error) bool {
 // retryAfterPattern matches "Retry-After: <seconds>" in an error message,
 // case-insensitively. Dynatrace clients surface this as part of the rate-limit
 // error string. The header value is in seconds per RFC 7231.
+// Note: RFC 7231 also allows an HTTP-date value (e.g. "Thu, 01 Jan 2026 …");
+// that form is not handled here. Dynatrace only ever sends the integer form.
 var retryAfterPattern = regexp.MustCompile(`(?i)retry[-_ ]?after[:=\s]+(\d+)`)
 
 func extractRetryAfter(err error) time.Duration {
