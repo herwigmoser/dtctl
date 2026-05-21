@@ -560,6 +560,7 @@ func TestExecute_RequestBodySerialization(t *testing.T) {
 		DefaultScanLimitGbytes:       500,
 		DefaultSamplingRatio:         0.1,
 		FetchTimeoutSeconds:          30,
+		PollingPromiseSeconds:        7,
 		EnablePreview:                true,
 		EnforceQueryConsumptionLimit: true,
 		IncludeTypes:                 &includeTypes,
@@ -590,6 +591,9 @@ func TestExecute_RequestBodySerialization(t *testing.T) {
 	}
 	if gotReq.Timezone != "Europe/Vienna" {
 		t.Errorf("Timezone = %q, want Europe/Vienna", gotReq.Timezone)
+	}
+	if gotReq.PollingPromiseSeconds != 7 {
+		t.Errorf("PollingPromiseSeconds = %d, want 7", gotReq.PollingPromiseSeconds)
 	}
 	if gotReq.IncludeTypes == nil || !*gotReq.IncludeTypes {
 		t.Error("IncludeTypes should be true")
@@ -769,6 +773,114 @@ func TestExecuteAndPoll_PreservesCallerTimeout(t *testing.T) {
 	}
 	if gotTimeout != 10000 {
 		t.Errorf("RequestTimeoutMilliseconds = %d, want 10000 (caller value)", gotTimeout)
+	}
+}
+
+// TestExecuteAndPoll_SetsPollingPromise verifies that ExecuteAndPoll sets the
+// PollingPromiseSeconds field to the default if the caller omits it.
+func TestExecuteAndPoll_SetsPollingPromise(t *testing.T) {
+	var gotPromise int32
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/platform/storage/query/v1/query:execute", func(w http.ResponseWriter, r *http.Request) {
+		var req ExecuteRequest
+		json.NewDecoder(r.Body).Decode(&req)
+		gotPromise = req.PollingPromiseSeconds
+
+		resp := Response{State: "SUCCEEDED"}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	})
+
+	h := NewHandler(newTestClient(t, mux))
+	_, err := h.ExecuteAndPoll(context.Background(), ExecuteRequest{Query: "fetch logs"}, nil)
+	if err != nil {
+		t.Fatalf("ExecuteAndPoll() error: %v", err)
+	}
+	if gotPromise != defaultPollingPromiseSeconds {
+		t.Errorf("PollingPromiseSeconds = %d, want %d", gotPromise, defaultPollingPromiseSeconds)
+	}
+}
+
+// TestExecuteAndPoll_PreservesCallerPollingPromise verifies that ExecuteAndPoll
+// does NOT overwrite a caller-supplied PollingPromiseSeconds value.
+func TestExecuteAndPoll_PreservesCallerPollingPromise(t *testing.T) {
+	var gotPromise int32
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/platform/storage/query/v1/query:execute", func(w http.ResponseWriter, r *http.Request) {
+		var req ExecuteRequest
+		json.NewDecoder(r.Body).Decode(&req)
+		gotPromise = req.PollingPromiseSeconds
+
+		resp := Response{State: "SUCCEEDED"}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	})
+
+	h := NewHandler(newTestClient(t, mux))
+	_, err := h.ExecuteAndPoll(context.Background(), ExecuteRequest{
+		Query:                 "fetch logs",
+		PollingPromiseSeconds: 42,
+	}, nil)
+	if err != nil {
+		t.Fatalf("ExecuteAndPoll() error: %v", err)
+	}
+	if gotPromise != 42 {
+		t.Errorf("PollingPromiseSeconds = %d, want 42 (caller value)", gotPromise)
+	}
+}
+
+// TestExecuteAndPoll_PollGapWithinPromiseBudget guards against accidental sleeps
+// or backoffs being introduced into the poll loop. The backend will auto-cancel
+// a running query if the gap between successive polls exceeds
+// pollingPromiseSeconds (currently 5s). Today the loop has zero client-side
+// delay between polls; this test pins that property by asserting each
+// poll-to-poll gap is well under the budget.
+func TestExecuteAndPoll_PollGapWithinPromiseBudget(t *testing.T) {
+	const maxGap = 1 * time.Second // ~5x under the 5s pollingPromiseSeconds budget
+
+	var (
+		mu        sync.Mutex
+		pollTimes []time.Time
+	)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/platform/storage/query/v1/query:execute", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(Response{State: "RUNNING", RequestToken: "tok"})
+	})
+	mux.HandleFunc("/platform/storage/query/v1/query:poll", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		pollTimes = append(pollTimes, time.Now())
+		n := len(pollTimes)
+		mu.Unlock()
+
+		state := "RUNNING"
+		if n >= 3 {
+			state = "SUCCEEDED"
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(Response{State: state})
+	})
+
+	h := NewHandler(newTestClient(t, mux))
+	_, err := h.ExecuteAndPoll(context.Background(), ExecuteRequest{Query: "fetch logs"}, nil)
+	if err != nil {
+		t.Fatalf("ExecuteAndPoll() error: %v", err)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(pollTimes) < 2 {
+		t.Fatalf("expected at least 2 poll calls to measure gaps, got %d", len(pollTimes))
+	}
+	for i := 1; i < len(pollTimes); i++ {
+		gap := pollTimes[i].Sub(pollTimes[i-1])
+		if gap >= maxGap {
+			t.Errorf("poll-to-poll gap %d->%d = %v, want < %v (must stay well under pollingPromiseSeconds=%ds)",
+				i-1, i, gap, maxGap, defaultPollingPromiseSeconds)
+		}
 	}
 }
 

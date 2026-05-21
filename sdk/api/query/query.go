@@ -55,13 +55,18 @@ type FilterSegmentVariable struct {
 
 // ExecuteRequest represents a DQL query execution request body.
 type ExecuteRequest struct {
-	Query                        string             `json:"query"`
-	RequestTimeoutMilliseconds   int64              `json:"requestTimeoutMilliseconds,omitempty"`
-	MaxResultRecords             int64              `json:"maxResultRecords,omitempty"`
-	MaxResultBytes               int64              `json:"maxResultBytes,omitempty"`
-	DefaultScanLimitGbytes       float64            `json:"defaultScanLimitGbytes,omitempty"`
-	DefaultSamplingRatio         float64            `json:"defaultSamplingRatio,omitempty"`
-	FetchTimeoutSeconds          int32              `json:"fetchTimeoutSeconds,omitempty"`
+	Query                      string  `json:"query"`
+	RequestTimeoutMilliseconds int64   `json:"requestTimeoutMilliseconds,omitempty"`
+	MaxResultRecords           int64   `json:"maxResultRecords,omitempty"`
+	MaxResultBytes             int64   `json:"maxResultBytes,omitempty"`
+	DefaultScanLimitGbytes     float64 `json:"defaultScanLimitGbytes,omitempty"`
+	DefaultSamplingRatio       float64 `json:"defaultSamplingRatio,omitempty"`
+	FetchTimeoutSeconds        int32   `json:"fetchTimeoutSeconds,omitempty"`
+	// PollingPromiseSeconds bounds the maximum gap, in seconds, between
+	// successive polls of an asynchronous query. If the client does not issue
+	// the next poll within this window after the previous response, the backend
+	// auto-cancels the query. Optional.
+	PollingPromiseSeconds        int32              `json:"pollingPromiseSeconds,omitempty"`
 	EnablePreview                bool               `json:"enablePreview,omitempty"`
 	EnforceQueryConsumptionLimit bool               `json:"enforceQueryConsumptionLimit,omitempty"`
 	IncludeTypes                 *bool              `json:"includeTypes,omitempty"`
@@ -192,6 +197,11 @@ type ErrorResponse struct {
 // pollRequestTimeoutMs is the server-side hold time per poll round trip in milliseconds.
 const pollRequestTimeoutMs int64 = 5000
 
+// defaultPollingPromiseSeconds caps the gap between successive polls before
+// the backend auto-cancels a running query. dtctl re-polls immediately after
+// each long-poll returns RUNNING, so 5s is comfortably above the actual gap.
+const defaultPollingPromiseSeconds int32 = 5
+
 const basePath = "/platform/storage/query/v1/query"
 
 // --- API methods ---
@@ -301,6 +311,9 @@ func (h *Handler) ExecuteAndPoll(ctx context.Context, req ExecuteRequest, onUnau
 	// backend returns promptly for the poll loop.
 	if req.RequestTimeoutMilliseconds == 0 {
 		req.RequestTimeoutMilliseconds = pollRequestTimeoutMs
+	}
+	if req.PollingPromiseSeconds == 0 {
+		req.PollingPromiseSeconds = defaultPollingPromiseSeconds
 	}
 
 	result, err := h.Execute(execCtx, req)

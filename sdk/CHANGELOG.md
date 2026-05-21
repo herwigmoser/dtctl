@@ -4,6 +4,12 @@ All notable changes to the dt-cli-sdk will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- `sdk/api/query` — `ExecuteRequest.PollingPromiseSeconds` field maps to the new `pollingPromiseSeconds` body parameter on `query:execute`, instructing the backend to auto-cancel a running query if the client does not poll within the specified number of seconds. `Handler.ExecuteAndPoll` defaults the field to 5 seconds when the caller leaves it unset; a caller-supplied non-zero value is preserved.
+
 ## [0.2.0] - 2026-05-16
 
 ### Added
